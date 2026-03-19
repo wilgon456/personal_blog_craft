@@ -907,6 +907,28 @@ img {
   transform: translateY(-1px);
 }
 
+.tag-back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+
+.tag-back-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.88;
+}
+
 .article-shell {
   padding: 1.5rem;
 }
