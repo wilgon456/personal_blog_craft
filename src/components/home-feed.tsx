@@ -29,6 +29,34 @@ type HomeFeedProps = {
   tagSummaries: TagSummary[]
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 16 16" width="16">
+      <path
+        d="m4 6 4 4 4-4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  )
+}
+
+function SortArrowIcon({ direction }: { direction: "asc" | "desc" }) {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 16 16" width="16">
+      <path
+        d={direction === "desc" ? "M8 3v10m0 0-3-3m3 3 3-3" : "M8 13V3m0 0-3 3m3-3 3 3"}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  )
+}
+
 function SortButton({
   active = false,
   direction,
@@ -46,7 +74,7 @@ function SortButton({
       title={direction === "desc" ? "Newest first" : "Oldest first"}
       type="button"
     >
-      {direction === "desc" ? "↓" : "↑"}
+      <SortArrowIcon direction={direction} />
     </button>
   )
 }
@@ -142,81 +170,91 @@ export function HomeFeed({
       </section>
 
       <section className="home-search-card panel">
-        <p className="home-panel-heading">Search</p>
+        <div className="home-search-head">
+          <p className="home-panel-heading">Search</p>
+          <p className="home-search-note">Find notes, workflows, and CMS posts.</p>
+        </div>
         <form action={`${basePath}/search/`} method="get">
           <input
             aria-label="Search posts"
             name="q"
-            placeholder="Search Keyword..."
+            placeholder="Search keyword..."
             type="search"
           />
         </form>
       </section>
 
-      <div className="home-mobile-tags home-tags-strip">
-        <span className="home-mobile-tags__label">🏷️ Tags</span>
-        {tagSummaries.map((tag) => (
-          <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
-            {tag.label}
-          </Link>
-        ))}
-      </div>
+      <section className="home-feed-shell">
+        <div className="home-feed-header">
+          <div className="home-feed-title-wrap">
+            <details className="home-dropdown" ref={dropdownRef}>
+              <summary className="home-dropdown__summary">
+                <span className="home-feed-title">
+                  {currentCategory?.label ?? "All"} Posts
+                </span>
+                <span className="home-dropdown__chevron">
+                  <ChevronDownIcon />
+                </span>
+              </summary>
+              <div className="home-dropdown__menu">
+                {categorySummaries.map((category) => (
+                  <button
+                    className={`home-dropdown__item${
+                      category.key === currentCategory?.key ? " is-active" : ""
+                    }`}
+                    key={category.key}
+                    onClick={() => selectCategory(category.key)}
+                    type="button"
+                  >
+                    <span>{category.label}</span>
+                    <span>{category.count}</span>
+                  </button>
+                ))}
+              </div>
+            </details>
+            <p className="home-feed-meta">
+              {filteredPosts.length} posts · {countUniqueTags(filteredPosts)} tags
+            </p>
+          </div>
 
-      <div className="home-feed-header">
-        <div className="home-feed-title-wrap">
-          <details className="home-dropdown" ref={dropdownRef}>
-            <summary className="home-dropdown__summary">
-              <span className="home-feed-title">
-                {currentCategory?.label ?? "All"} Posts
-              </span>
-              <span className="home-dropdown__chevron">⌄</span>
-            </summary>
-            <div className="home-dropdown__menu">
-              {categorySummaries.map((category) => (
-                <button
-                  className={`home-dropdown__item${
-                    category.key === currentCategory?.key ? " is-active" : ""
-                  }`}
-                  key={category.key}
-                  onClick={() => selectCategory(category.key)}
-                  type="button"
-                >
-                  <span>{category.label}</span>
-                  <span>{category.count}</span>
-                </button>
+          <div className="home-feed-toolbar">
+            <div className="home-mobile-tags home-tags-strip">
+              <span className="home-mobile-tags__label">Browse tags</span>
+              {tagSummaries.map((tag) => (
+                <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
+                  {tag.label}
+                </Link>
               ))}
             </div>
-          </details>
-          <p>
-            {filteredPosts.length} posts, {countUniqueTags(filteredPosts)} tags
-          </p>
-        </div>
-        <div className="home-feed-header__actions">
-          <SortButton
-            active={currentOrder === "desc"}
-            direction="desc"
-            onClick={() => updateQuery({ order: "desc" })}
-          />
-          <SortButton
-            active={currentOrder === "asc"}
-            direction="asc"
-            onClick={() => updateQuery({ order: "asc" })}
-          />
-        </div>
-      </div>
 
-      {latestPosts.length ? (
-        <div className="post-list">
-          {latestPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+            <div className="home-feed-header__actions">
+              <SortButton
+                active={currentOrder === "desc"}
+                direction="desc"
+                onClick={() => updateQuery({ order: "desc" })}
+              />
+              <SortButton
+                active={currentOrder === "asc"}
+                direction="asc"
+                onClick={() => updateQuery({ order: "asc" })}
+              />
+            </div>
+          </div>
         </div>
-      ) : (
-        <EmptyState
-          title="No posts in this category yet"
-          description="Choose another category or publish a post with this category in Craft."
-        />
-      )}
+
+        {latestPosts.length ? (
+          <div className="post-list">
+            {latestPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No posts in this category yet"
+            description="Choose another category or publish a post with this category in Craft."
+          />
+        )}
+      </section>
     </div>
   )
 }
