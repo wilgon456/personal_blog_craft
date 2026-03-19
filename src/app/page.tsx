@@ -83,28 +83,6 @@ export default async function HomePage() {
         type="application/ld+json"
       />
 
-      <aside className="home-left">
-        <div>
-          <div className="home-rail">
-            <p className="home-panel-heading">🏷️ Tags</p>
-            <div className="home-tag-list" style={{ marginTop: "0.1rem" }}>
-              {tagSummaries.length ? (
-                tagSummaries.map((tag) => (
-                  <Link className="home-tag-link" href={`/tags/${tag.key}`} key={tag.key}>
-                    <span>{tag.label}</span>
-                    <span className="home-tag-link__count">{tag.count}</span>
-                  </Link>
-                ))
-              ) : (
-                <p className="profile-card__bio">
-                  Publish posts with tags to fill this rail.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </aside>
-
       <HomeFeed
         authorName={siteAuthorName}
         description={siteDescription}
@@ -158,14 +136,16 @@ export default async function HomePage() {
                   <span>github</span>
                 </span>
               </a>
-              <a href={siteAuthorUrl} rel="noreferrer" target="_blank">
-                <span className="home-contact-item">
-                  <span className="home-contact-icon">
-                    <ContactIcon kind="instagram" />
+              {siteAuthorUrl ? (
+                <a href={siteAuthorUrl} rel="noreferrer" target="_blank">
+                  <span className="home-contact-item">
+                    <span className="home-contact-icon">
+                      <ContactIcon kind="instagram" />
+                    </span>
+                    <span>instagram</span>
                   </span>
-                  <span>instagram</span>
-                </span>
-              </a>
+                </a>
+              ) : null}
             </div>
           </div>
         </section>
