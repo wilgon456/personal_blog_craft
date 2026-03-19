@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import { Noto_Sans_KR } from "next/font/google"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/theme-toggle"
 import "./globals.css"
 import {
   absoluteUrl,
-  siteAuthorName,
   siteDescription,
   siteKeywords,
   siteName,
@@ -51,6 +51,18 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={bodyFont.variable}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const storedTheme = localStorage.getItem("tuchiz-theme");
+                if (storedTheme === "light" || storedTheme === "dark") {
+                  document.documentElement.dataset.theme = storedTheme;
+                }
+              } catch (error) {}
+            })();`,
+          }}
+        />
         <div className="site-frame">
           <header className="site-header">
             <div className="site-header__inner">
@@ -61,6 +73,7 @@ export default function RootLayout({
 
               <nav className="site-nav" aria-label="Main navigation">
                 <Link href="/">HOME</Link>
+                <ThemeToggle />
                 <Link href="/about">ABOUT</Link>
               </nav>
             </div>
@@ -68,15 +81,7 @@ export default function RootLayout({
 
           <main className="site-main">{children}</main>
 
-          <footer className="site-footer">
-            <div className="site-footer__inner">
-              <p />
-              <p>
-                <span>{new Date().getFullYear()}</span>
-                <span>{siteAuthorName}</span>
-              </p>
-            </div>
-          </footer>
+          <footer className="site-footer" />
         </div>
       </body>
     </html>

@@ -1,9 +1,6 @@
 import Link from "next/link"
 import { HomeFeed } from "@/components/home-feed"
-import {
-  getPublishedPosts,
-  getTagSummaries,
-} from "@/lib/posts"
+import { getPublishedPosts, getTagSummaries } from "@/lib/posts"
 import {
   absoluteUrl,
   siteAuthorName,
@@ -87,8 +84,8 @@ export default async function HomePage() {
 
       <aside className="home-left">
         <div>
-          <p className="home-panel-heading">🏷️ Tags</p>
           <div className="home-rail">
+            <p className="home-panel-heading">🏷️ Tags</p>
             <div className="home-tag-list" style={{ marginTop: "0.1rem" }}>
               {tagSummaries.length ? (
                 tagSummaries.map((tag) => (
@@ -117,8 +114,8 @@ export default async function HomePage() {
 
       <aside className="home-right">
         <section className="home-right-group">
-          <p className="home-panel-heading">Profile</p>
           <div className="panel home-right-card">
+            <p className="home-panel-heading">Profile</p>
             <div className="home-profile">
               <div className="home-avatar">{initials}</div>
               <div className="home-profile__content">
@@ -133,8 +130,8 @@ export default async function HomePage() {
         </section>
 
         <section className="home-right-group">
-          <p className="home-panel-heading">Service</p>
           <div className="panel home-right-card">
+            <p className="home-panel-heading">Service</p>
             <div className="home-link-grid">
               <Link href="/archive">
                 <span>Archive</span>
@@ -149,8 +146,8 @@ export default async function HomePage() {
         </section>
 
         <section className="home-right-group">
-          <p className="home-panel-heading">Contact</p>
           <div className="panel home-right-card">
+            <p className="home-panel-heading">Contact</p>
             <div className="home-contact-list">
               <a href="https://github.com/wilgon456" rel="noreferrer" target="_blank">
                 <span className="home-contact-item">
@@ -174,8 +171,9 @@ export default async function HomePage() {
 
         <section className="home-right-group home-right-footer">
           <p className="home-copyright">
-            © {siteAuthorName}{" "}
-            {startedYear === currentYear ? currentYear : `${startedYear} - ${currentYear}`}
+            Copyright{" "}
+            {startedYear === currentYear ? currentYear : `${startedYear} - ${currentYear}`}{" "}
+            {siteAuthorName}
           </p>
         </section>
       </aside>

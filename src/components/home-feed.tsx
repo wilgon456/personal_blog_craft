@@ -155,6 +155,15 @@ export function HomeFeed({
         </form>
       </section>
 
+      <div className="home-mobile-tags home-tags-strip">
+        <span className="home-mobile-tags__label">🏷️ Tags</span>
+        {tagSummaries.map((tag) => (
+          <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
+            {tag.label}
+          </Link>
+        ))}
+      </div>
+
       {featuredPost ? (
         <section className="featured-post">
           <div className="home-feed-header">
@@ -195,15 +204,6 @@ export function HomeFeed({
           </article>
         </section>
       ) : null}
-
-      <div className="home-mobile-tags">
-        <span className="home-mobile-tags__label">🏷️ Tags</span>
-        {tagSummaries.map((tag) => (
-          <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
-            {tag.label}
-          </Link>
-        ))}
-      </div>
 
       <div className="home-feed-header">
         <div className="home-feed-title-wrap">
