@@ -1,6 +1,7 @@
 const fallbackSiteUrl = "https://tuchizblog.today"
 
 export const siteUrl = process.env.SITE_URL || fallbackSiteUrl
+export const basePath = process.env.BASE_PATH || ""
 export const siteAuthorName = process.env.BLOG_AUTHOR_NAME || "tuchi"
 export const siteAuthorUrl = process.env.BLOG_AUTHOR_URL || ""
 export const siteName = `${siteAuthorName}'s log`

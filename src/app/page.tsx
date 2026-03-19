@@ -7,7 +7,7 @@ import {
   getPublishedPosts,
   getTagSummaries,
 } from "@/lib/posts"
-import { siteAuthorName, siteDescription } from "@/lib/site"
+import { basePath, siteAuthorName, siteDescription } from "@/lib/site"
 
 export default async function HomePage() {
   const posts = await getPublishedPosts()
@@ -53,7 +53,7 @@ export default async function HomePage() {
         </section>
 
         <section className="search-card">
-          <form action="/search" method="get">
+          <form action={`${basePath}/search/`} method="get">
             <input
               aria-label="Search posts"
               name="q"
