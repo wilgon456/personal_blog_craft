@@ -1,4 +1,5 @@
 import { flattenCraftBlocks, getCraftPostItems } from "@/lib/craft"
+import { markdownToPlainText, summarizeMarkdown } from "@/lib/content-summary"
 import {
   normalizeCategoryKey,
   normalizeTagKey,
@@ -34,23 +35,6 @@ function ensureDate(value: unknown) {
   return Number.isNaN(date.valueOf()) ? "" : date.toISOString()
 }
 
-function stripMarkdown(markdown: string) {
-  return markdown
-    .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
-    .replace(/[`*_>#-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-}
-
-function takeExcerpt(text: string, maxLength = 180) {
-  if (text.length <= maxLength) {
-    return text
-  }
-
-  return `${text.slice(0, maxLength).trim()}...`
-}
-
 function toEnglishSlug(value: string, fallbackId: string) {
   const normalized = slugify(value, {
     lowercase: true,
@@ -61,7 +45,7 @@ function toEnglishSlug(value: string, fallbackId: string) {
 }
 
 function readingMinutesFromText(text: string) {
-  const wordCount = stripMarkdown(text).split(/\s+/).filter(Boolean).length
+  const wordCount = markdownToPlainText(text).split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(wordCount / 220))
 }
 
@@ -83,9 +67,11 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
   const properties = item.properties ?? {}
   const title = ensureString(item.title) || "Untitled post"
   const contentMarkdown = flattenCraftBlocks(item.content)
+  const excerptFromContent = summarizeMarkdown(contentMarkdown, 180)
+  const seoDescriptionFromContent = summarizeMarkdown(contentMarkdown, 160)
   const excerpt =
     ensureString(properties.excerpt) ||
-    takeExcerpt(stripMarkdown(contentMarkdown), 180)
+    excerptFromContent
   const rawTags = ensureStringArray(properties.tags)
   const category = ensureString(properties.category)
   const publishedAt =
@@ -113,7 +99,10 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
     displayDate: displayDate(publishedAt),
     year: new Date(publishedAt).getFullYear(),
     seoTitle: ensureString(properties.seo_title) || title,
-    seoDescription: ensureString(properties.seo_description) || excerpt,
+    seoDescription:
+      ensureString(properties.seo_description) ||
+      seoDescriptionFromContent ||
+      excerpt,
     heroImage: ensureString(properties.hero_image),
     contentMarkdown,
     readingMinutes: readingMinutesFromText(contentMarkdown || excerpt),

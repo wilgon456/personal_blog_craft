@@ -1,4 +1,7 @@
-const fallbackSiteUrl = "https://tuchizblog.today"
+const fallbackSiteUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://tuchizblog.today"
 
 export const siteUrl = process.env.SITE_URL || fallbackSiteUrl
 export const basePath = process.env.BASE_PATH || ""

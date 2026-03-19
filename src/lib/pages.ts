@@ -1,4 +1,5 @@
 import { flattenCraftBlocks, getCraftCollectionItems } from "@/lib/craft"
+import { summarizeMarkdown } from "@/lib/content-summary"
 import { slugify } from "transliteration"
 
 type SitePage = {
@@ -40,21 +41,6 @@ function toSlug(value: string, fallbackId: string) {
   return normalized || `page-${fallbackId.slice(0, 8)}`
 }
 
-function takeDescription(markdown: string, maxLength = 160) {
-  const plain = markdown
-    .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
-    .replace(/[`*_>#-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-
-  if (plain.length <= maxLength) {
-    return plain
-  }
-
-  return `${plain.slice(0, maxLength).trim()}...`
-}
-
 function normalizePage(
   item: Awaited<ReturnType<typeof getCraftCollectionItems>>[number],
 ): SitePage {
@@ -64,7 +50,7 @@ function normalizePage(
   const slug = toSlug(ensureString(properties.slug) || title, item.id)
   const updatedAt = ensureDate(properties.updated_at) || new Date().toISOString()
   const seoDescription =
-    ensureString(properties.seo_description) || takeDescription(contentMarkdown)
+    ensureString(properties.seo_description) || summarizeMarkdown(contentMarkdown, 160)
 
   return {
     id: item.id,
@@ -92,4 +78,3 @@ export async function getPageBySlug(slug: string) {
   const pages = await getPublishedPages()
   return pages.find((page) => page.slug === slug) ?? null
 }
-
