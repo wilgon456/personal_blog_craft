@@ -19,7 +19,7 @@ export function PostCard({ post, compact = false }: PostCardProps) {
       <div className="post-card__body">
         <div className="post-card__meta">
           <span>{post.displayDate}</span>
-          <span>·</span>
+          <span>|</span>
           <span>{post.readingMinutes} min read</span>
         </div>
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Manrope, Newsreader } from "next/font/google"
+import { Noto_Sans_KR } from "next/font/google"
 import Link from "next/link"
 import "./globals.css"
 import {
@@ -12,14 +12,8 @@ import {
   siteUrl,
 } from "@/lib/site"
 
-const bodyFont = Manrope({
+const bodyFont = Noto_Sans_KR({
   variable: "--font-body",
-  subsets: ["latin"],
-  display: "swap",
-})
-
-const displayFont = Newsreader({
-  variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
 })
@@ -57,12 +51,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${bodyFont.variable} ${displayFont.variable}`}>
+      <body className={bodyFont.variable}>
         <div className="site-frame">
           <header className="site-header">
             <div className="site-header__inner">
               <Link className="site-brand" href="/">
-                <span className="site-brand__eyebrow">Craft CMS blog</span>
+                <span className="site-brand__eyebrow">TL</span>
                 <strong>{siteName}</strong>
               </Link>
 
@@ -85,10 +79,7 @@ export default function RootLayout({
 
           <footer className="site-footer">
             <div className="site-footer__inner">
-              <p>
-                {siteName} is built with Craft as the writing space and Next.js
-                as the static blog engine.
-              </p>
+              <p>Built with Craft, Next.js, and GitHub Pages.</p>
               <p>
                 <span>{new Date().getFullYear()}</span>
                 <span>{siteAuthorName}</span>

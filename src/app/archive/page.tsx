@@ -40,7 +40,7 @@ export default async function ArchivePage() {
                 {group.posts.map((post) => (
                   <Link className="archive-item" href={`/posts/${post.slug}`} key={post.id}>
                     <div className="archive-item__meta">
-                      {post.displayDate} · {post.readingMinutes} min read
+                      {post.displayDate} | {post.readingMinutes} min read
                     </div>
                     <div className="archive-item__title">{post.title}</div>
                   </Link>

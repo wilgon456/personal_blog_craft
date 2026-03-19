@@ -11,6 +11,7 @@ import {
   absoluteUrl,
   basePath,
   siteAuthorName,
+  siteAuthorUrl,
   siteDescription,
   siteName,
   siteUrl,
@@ -33,129 +34,193 @@ const personJsonLd = {
 
 export default async function HomePage() {
   const posts = await getPublishedPosts()
-  const latestPosts = getLatestPosts(posts, 6)
-  const tagSummaries = getTagSummaries(posts).slice(0, 10)
+  const latestPosts = getLatestPosts(posts, 12)
+  const tagSummaries = getTagSummaries(posts).slice(0, 20)
+  const featuredPost = latestPosts[0] ?? null
+  const feedPosts = featuredPost ? latestPosts.slice(1) : latestPosts
+  const initials = siteAuthorName.slice(0, 2).toUpperCase()
 
   return (
-    <section className="page-grid">
-      <div className="page-main">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify([websiteJsonLd, personJsonLd]),
-          }}
-          type="application/ld+json"
-        />
-        <section className="hero panel">
-          <p className="hero__eyebrow">Writing from Craft</p>
-          <h1>
-            Quiet structure,
-            <br />
-            warm reading.
-          </h1>
-          <p className="hero__body">
-            {siteDescription} This layout borrows the calm editorial feeling of
-            morethan-log, then reshapes it for a Craft-powered static blog.
-          </p>
-          <div className="hero__actions">
-            <Link className="button-link" href="/archive">
-              Browse archive
-            </Link>
-            <Link className="button-muted" href="/search">
-              Search notes
-            </Link>
+    <section className="home-shell">
+      <script
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([websiteJsonLd, personJsonLd]),
+        }}
+        type="application/ld+json"
+      />
+
+      <aside className="home-left">
+        <div>
+          <p className="home-panel-heading">Tags</p>
+          <div className="home-rail">
+            <div className="home-tag-list" style={{ marginTop: "0.1rem" }}>
+              {tagSummaries.length ? (
+                tagSummaries.map((tag) => (
+                  <Link className="home-tag-link" href={`/tags/${tag.key}`} key={tag.key}>
+                    <span>{tag.label}</span>
+                    <span className="home-tag-link__count">{tag.count}</span>
+                  </Link>
+                ))
+              ) : (
+                <p className="profile-card__bio">
+                  Publish posts with tags to fill this rail.
+                </p>
+              )}
+            </div>
           </div>
-          <div className="metrics">
-            <div className="metric">
-              <strong>{posts.length}</strong>
-              <span>Published posts</span>
-            </div>
-            <div className="metric">
-              <strong>{countUniqueTags(posts)}</strong>
-              <span>Tags in use</span>
-            </div>
-            <div className="metric">
-              <strong>{new Set(posts.map((post) => post.year)).size || 0}</strong>
-              <span>Archive years</span>
+        </div>
+      </aside>
+
+      <div className="home-center">
+        <section className="home-mobile-profile">
+          <p className="home-panel-heading">Profile</p>
+          <div className="home-profile">
+            <div className="home-avatar">{initials}</div>
+            <div className="home-profile__content">
+              <div className="home-profile__name">{siteAuthorName}</div>
+              <div className="home-profile__role">frontend developer</div>
+              <p className="profile-card__bio" style={{ marginTop: "0.55rem" }}>
+                {siteDescription}
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="search-card">
+        {featuredPost ? (
+          <section className="featured-post">
+            <div className="home-feed-header">
+              <div className="home-feed-title-wrap">
+                <p className="home-panel-heading">Featured Post</p>
+              </div>
+            </div>
+            <article className="featured-post__card">
+              {featuredPost.heroImage ? (
+                <div className="featured-post__image">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt={featuredPost.title} src={featuredPost.heroImage} />
+                </div>
+              ) : null}
+              <div className="featured-post__body">
+                {featuredPost.tags[0] ? (
+                  <Link
+                    className="featured-post__tag"
+                    href={`/tags/${featuredPost.tagKeys[featuredPost.tags[0]]}`}
+                  >
+                    {featuredPost.tags[0]}
+                  </Link>
+                ) : null}
+                <Link href={`/posts/${featuredPost.slug}`}>
+                  <h2 className="featured-post__title">{featuredPost.title}</h2>
+                </Link>
+                <div className="post-card__meta">
+                  <span>{featuredPost.displayDate}</span>
+                  <span>|</span>
+                  <span>{featuredPost.readingMinutes} min read</span>
+                </div>
+                {featuredPost.excerpt ? (
+                  <p className="featured-post__excerpt">{featuredPost.excerpt}</p>
+                ) : null}
+              </div>
+            </article>
+          </section>
+        ) : null}
+
+        <section className="home-search-card panel">
+          <p className="home-panel-heading">Search</p>
           <form action={`${basePath}/search/`} method="get">
             <input
               aria-label="Search posts"
               name="q"
-              placeholder="Search by title, excerpt, content, or tag"
+              placeholder="Search Keyword..."
               type="search"
             />
-            <button type="submit">Search</button>
           </form>
         </section>
 
-        <section style={{ marginTop: "1.25rem" }}>
-          <div className="section-heading">
-            <h2>Latest posts</h2>
-            <p>Published notes appear automatically from Craft.</p>
-          </div>
+        <div className="home-mobile-tags">
+          {tagSummaries.map((tag) => (
+            <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
+              {tag.label}
+            </Link>
+          ))}
+        </div>
 
-          {latestPosts.length ? (
-            <div className="post-list">
-              {latestPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              title="No published posts yet"
-              description="Create posts in your Craft Posts collection and set Published to true to fill this page."
-            />
-          )}
-        </section>
+        <div className="home-feed-header">
+          <div className="home-feed-title-wrap">
+            <h1 className="home-feed-title">All Posts</h1>
+            <p>{posts.length} posts, {countUniqueTags(posts)} tags</p>
+          </div>
+          <div className="home-feed-header__actions">
+            <span>Desc</span>
+            <span>Latest</span>
+          </div>
+        </div>
+
+        {feedPosts.length ? (
+          <div className="post-list">
+            {feedPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No published posts yet"
+            description="Create posts in your Craft Posts collection and set Published to true to fill this feed."
+          />
+        )}
       </div>
 
-      <aside className="page-side">
-        <section className="panel">
-          <p className="eyebrow">Profile</p>
-          <h2 className="profile-card__name">{siteAuthorName}</h2>
-          <p className="profile-card__bio">
-            A Craft-first writing flow with GitHub Pages delivery. The CMS stays
-            simple and the reading experience stays focused.
-          </p>
-        </section>
-
-        <section className="panel">
-          <div className="section-heading">
-            <h2>Popular tags</h2>
-          </div>
-          <div className="tag-row">
-            {tagSummaries.length ? (
-              tagSummaries.map((tag) => (
-                <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
-                  {tag.label} · {tag.count}
-                </Link>
-              ))
-            ) : (
-              <p className="profile-card__bio">
-                Tags will show up after the first post is published.
-              </p>
-            )}
+      <aside className="home-right">
+        <section className="home-right-group">
+          <p className="home-panel-heading">Profile</p>
+          <div className="panel home-right-card">
+            <div className="home-profile">
+              <div className="home-avatar">{initials}</div>
+              <div className="home-profile__content">
+                <div className="home-profile__name">{siteAuthorName}</div>
+                <div className="home-profile__role">frontend developer</div>
+                <p className="profile-card__bio" style={{ marginTop: "0.55rem" }}>
+                  {siteDescription}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="panel">
-          <div className="section-heading">
-            <h2>Shortcuts</h2>
+        <section className="home-right-group">
+          <p className="home-panel-heading">Service</p>
+          <div className="panel home-right-card">
+            <div className="home-link-grid">
+              <Link href="/archive">
+                <span>Archive</span>
+                <span className="home-contact-label">Open</span>
+              </Link>
+              <Link href="/search">
+                <span>Search</span>
+                <span className="home-contact-label">Open</span>
+              </Link>
+            </div>
           </div>
-          <div className="mini-list">
-            <Link href="/archive">
-              <span>Archive timeline</span>
-              <span className="muted-link">Open</span>
-            </Link>
-            <Link href="/search">
-              <span>Keyword search</span>
-              <span className="muted-link">Open</span>
-            </Link>
+        </section>
+
+        <section className="home-right-group">
+          <p className="home-panel-heading">Contact</p>
+          <div className="panel home-right-card">
+            <div className="home-contact-list">
+              <a href="https://github.com/wilgon456" rel="noreferrer" target="_blank">
+                <span>github</span>
+              </a>
+              <a href={siteAuthorUrl} rel="noreferrer" target="_blank">
+                <span>instagram</span>
+              </a>
+            </div>
           </div>
+        </section>
+
+        <section className="home-right-group home-right-footer">
+          <a href="https://github.com/wilgon456" rel="noreferrer" target="_blank">
+            {new Date().getFullYear()} {siteAuthorName}
+          </a>
         </section>
       </aside>
     </section>

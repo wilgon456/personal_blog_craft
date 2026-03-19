@@ -67,7 +67,7 @@ export function SearchView({ initialQuery, posts }: SearchViewProps) {
           filteredPosts.map((post) => (
             <Link className="search-result" href={`/posts/${post.slug}`} key={post.id}>
               <div className="search-result__meta">
-                {post.displayDate} · {post.readingMinutes} min read
+                {post.displayDate} | {post.readingMinutes} min read
               </div>
               <div className="search-result__title">{post.title}</div>
               {post.excerpt ? <p>{post.excerpt}</p> : null}
