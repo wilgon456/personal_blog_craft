@@ -1085,12 +1085,12 @@ img {
 
 .article-header__summary {
   margin-top: 1rem;
-  max-width: 64ch;
+  max-width: 100%;
   color: var(--muted);
 }
 
 .article-body {
-  max-width: 70ch;
+  max-width: 100%;
 }
 
 .article-body img,

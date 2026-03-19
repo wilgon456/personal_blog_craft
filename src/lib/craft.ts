@@ -18,7 +18,11 @@ type CraftCollectionItem = {
 
 type CraftBlock = {
   id: string
+  type?: string
   markdown?: string
+  url?: string
+  altText?: string
+  fileName?: string
   content?: CraftBlock[]
 }
 
@@ -135,12 +139,40 @@ export async function getCraftCollectionItems(collectionName: string) {
   return response.items
 }
 
+function escapeMarkdownText(value: string) {
+  return value.replace(/[[\]\\]/g, "\\$&")
+}
+
+function blockToMarkdown(block: CraftBlock) {
+  const markdown = block.markdown?.trim()
+
+  if (markdown) {
+    return markdown
+  }
+
+  if (block.type === "image" && block.url) {
+    const altText = escapeMarkdownText(
+      block.altText?.trim() || block.fileName?.trim() || "Image",
+    )
+
+    return `![${altText}](${block.url})`
+  }
+
+  if (block.type === "file" && block.url) {
+    const fileName = escapeMarkdownText(block.fileName?.trim() || "Attachment")
+    return `[${fileName}](${block.url})`
+  }
+
+  return ""
+}
+
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   return blocks
     .flatMap((block) => {
-      const current = block.markdown ? [block.markdown] : []
+      const current = blockToMarkdown(block)
+      const currentParts = current ? [current] : []
       const children = block.content ? [flattenCraftBlocks(block.content)] : []
-      return [...current, ...children]
+      return [...currentParts, ...children]
     })
     .filter(Boolean)
     .join("\n\n")
