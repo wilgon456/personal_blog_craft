@@ -174,6 +174,17 @@ function isOrderedListItemMarkdown(markdown: string) {
   return /^\s*\d+\.\s+/.test(markdown)
 }
 
+function toNumberedHeading(markdown: string) {
+  const matched = markdown.match(/^\s*(\d+)\.\s+(#{1,6})\s+(.+)$/)
+
+  if (!matched) {
+    return null
+  }
+
+  const [, order, headingLevel, headingText] = matched
+  return `${headingLevel} ${order}. ${headingText}`
+}
+
 function indentMarkdown(markdown: string, spaces = 4) {
   const indent = " ".repeat(spaces)
   return markdown
@@ -218,7 +229,15 @@ export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
         cursor += 1
       }
 
-      if (sectionChildren.length) {
+      const numberedHeading = toNumberedHeading(current)
+
+      if (numberedHeading) {
+        if (sectionChildren.length) {
+          parts.push(`${numberedHeading}\n\n${sectionChildren.join("\n\n")}`)
+        } else {
+          parts.push(numberedHeading)
+        }
+      } else if (sectionChildren.length) {
         parts.push(`${current}\n${indentMarkdown(sectionChildren.join("\n\n"))}`)
       } else {
         parts.push(current)
