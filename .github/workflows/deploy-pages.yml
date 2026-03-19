@@ -25,8 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      BASE_PATH: /personal_blog_craft
-      SITE_URL: https://wilgon456.github.io/personal_blog_craft
+      SITE_URL: https://tuchizblog.today
       BLOG_AUTHOR_NAME: tuchi
       BLOG_AUTHOR_URL: https://instagram.com/junicatz
       CRAFT_API_URL: ${{ secrets.CRAFT_API_URL }}
