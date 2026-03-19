@@ -28,17 +28,19 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   keywords: siteKeywords,
+  other: {
+    "google-adsense-account": "ca-pub-9527227465279219",
+  },
   alternates: {
     canonical: absoluteUrl(),
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/site-icon.png", type: "image/png" },
       { url: "/site-icon.png", sizes: "32x32", type: "image/png" },
     ],
     apple: [{ url: "/site-icon.png", type: "image/png" }],
-    shortcut: ["/favicon.ico"],
+    shortcut: ["/site-icon.png"],
   },
   openGraph: {
     type: "website",
