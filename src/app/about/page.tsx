@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import { markdownToHtml } from "@/lib/markdown"
 import { getPageBySlug } from "@/lib/pages"
+import { getSiteProfile } from "@/lib/profile"
 import {
   absoluteUrl,
   siteAuthorName,
   siteAuthorUrl,
-  siteProfileImage,
   siteName,
 } from "@/lib/site"
 import Link from "next/link"
@@ -44,6 +44,7 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const page = await getPageBySlug("about")
+  const profile = await getSiteProfile()
 
   if (!page) {
     notFound()
@@ -61,7 +62,7 @@ export default async function AboutPage() {
     name: siteAuthorName,
     url: siteAuthorUrl || absoluteUrl("about/"),
     description: page.seoDescription,
-    image: page.heroImage || absoluteUrl(siteProfileImage),
+    image: page.heroImage || absoluteUrl(profile.profileImage),
   }
 
   return (
@@ -86,7 +87,7 @@ export default async function AboutPage() {
           </div>
 
           <div className="about-portrait">
-            <img alt={page.title} src={page.heroImage || siteProfileImage} />
+            <img alt={page.title} src={page.heroImage || profile.profileImage} />
           </div>
         </header>
 

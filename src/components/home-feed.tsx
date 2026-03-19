@@ -1,9 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import Link from "next/link"
 import { startTransition, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@/components/empty-state"
 import { PostCard } from "@/components/post-card"
+import { type SiteProfile } from "@/lib/profile"
 import {
   ALL_CATEGORY_KEY,
   filterPostsByCategory,
@@ -16,9 +18,7 @@ import { basePath } from "@/lib/site"
 import type { BlogPost } from "@/types/post"
 
 type HomeFeedProps = {
-  authorName: string
-  description: string
-  initials: string
+  profile: SiteProfile
   posts: BlogPost[]
 }
 
@@ -38,13 +38,14 @@ function ChevronDownIcon() {
 
 function SortArrowIcon({ direction }: { direction: "asc" | "desc" }) {
   return (
-    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 16 16" width="16">
+    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
       <path
-        d={direction === "desc" ? "M8 3v10m0 0-3-3m3 3 3-3" : "M8 13V3m0 0-3 3m3-3 3 3"}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
+        d={
+          direction === "asc"
+            ? "M21 17h3l-4 4l-4-4h3V3h2zM8 16h3v-3H8zm5-11h-1V3h-2v2H6V3H4v2H3c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h10c1.11 0 2-.89 2-2V7c0-1.11-.89-2-2-2M3 18v-7h10v7z"
+            : "M19 7h-3l4-4l4 4h-3v14h-2zM8 16h3v-3H8zm5-11h-1V3h-2v2H6V3H4v2H3c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h10c1.11 0 2-.89 2-2V7c0-1.11-.89-2-2-2M3 18v-7h10v7z"
+        }
+        fill="currentColor"
       />
     </svg>
   )
@@ -70,12 +71,7 @@ function SortButton({
   )
 }
 
-export function HomeFeed({
-  authorName,
-  description,
-  initials,
-  posts,
-}: HomeFeedProps) {
+export function HomeFeed({ profile, posts }: HomeFeedProps) {
   const dropdownRef = useRef<HTMLDetailsElement>(null)
   const [currentOrder, setCurrentOrder] = useState<"asc" | "desc">(() => {
     if (typeof window === "undefined") {
@@ -150,14 +146,16 @@ export function HomeFeed({
   return (
     <div className="home-center">
       <section className="home-mobile-profile">
-        <p className="home-panel-heading">Profile</p>
+        <p className="home-panel-heading">I am</p>
         <div className="home-profile">
-          <div className="home-avatar">{initials}</div>
+          <div className="home-avatar">
+            <img alt={profile.displayName} src={profile.profileImage} />
+          </div>
           <div className="home-profile__content">
-            <div className="home-profile__name">{authorName}</div>
-            <div className="home-profile__role">frontend developer</div>
+            <div className="home-profile__name">{profile.displayName}</div>
+            <div className="home-profile__role">{profile.role}</div>
             <p className="profile-card__bio" style={{ marginTop: "0.55rem" }}>
-              {description}
+              {profile.bio}
             </p>
           </div>
         </div>
@@ -205,7 +203,7 @@ export function HomeFeed({
             </details>
             {filteredTagSummaries.length ? (
               <div className="home-mobile-tags home-tags-strip">
-                <span className="home-mobile-tags__label">Browse tags</span>
+                <span className="home-mobile-tags__label">Tags</span>
                 {filteredTagSummaries.map((tag) => (
                   <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
                     {tag.label}
