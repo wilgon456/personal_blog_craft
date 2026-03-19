@@ -1,5 +1,5 @@
 import { SearchView } from "@/components/search-view"
-import { getPublishedPosts } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteDescription } from "@/lib/site"
 
 export const metadata = {

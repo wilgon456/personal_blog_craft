@@ -3,17 +3,16 @@ import { PostCard } from "@/components/post-card"
 import { markdownToHtml } from "@/lib/markdown"
 import {
   getAdjacentPosts,
-  getPostBySlug,
-  getPublishedPosts,
 } from "@/lib/posts"
+import { getPostBySlug, getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteAuthorName, siteAuthorUrl, siteName } from "@/lib/site"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 type PostPageProps = {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export const dynamicParams = false
@@ -24,7 +23,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PostPageProps) {
-  const { slug } = params
+  const { slug } = await params
   const post = await getPostBySlug(slug)
 
   if (!post) {
@@ -56,7 +55,7 @@ export async function generateMetadata({ params }: PostPageProps) {
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  const { slug } = params
+  const { slug } = await params
   const [post, posts] = await Promise.all([
     getPostBySlug(slug),
     getPublishedPosts(),

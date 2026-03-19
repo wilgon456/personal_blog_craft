@@ -4,6 +4,7 @@
 node_modules
 .next
 out
+.cache
 dist
 coverage
 app-scaffold

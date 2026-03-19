@@ -1,13 +1,14 @@
 import { EmptyState } from "@/components/empty-state"
 import { PostCard } from "@/components/post-card"
-import { findDisplayTagByKey, getPublishedPosts } from "@/lib/posts"
+import { findDisplayTagByKey } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl } from "@/lib/site"
 import { notFound } from "next/navigation"
 
 type TagPageProps = {
-  params: {
+  params: Promise<{
     tag: string
-  }
+  }>
 }
 
 export const dynamicParams = false
@@ -26,7 +27,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: TagPageProps) {
-  const { tag } = params
+  const { tag } = await params
   const posts = await getPublishedPosts()
   const displayTag = findDisplayTagByKey(posts, tag)
 
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: TagPageProps) {
 }
 
 export default async function TagPage({ params }: TagPageProps) {
-  const { tag } = params
+  const { tag } = await params
   const posts = await getPublishedPosts()
   const displayTag = findDisplayTagByKey(posts, tag)
 

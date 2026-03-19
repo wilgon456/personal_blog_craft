@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises"
+import path from "node:path"
 import { notFound } from "next/navigation"
 
 type CraftCollection = {
@@ -24,7 +26,14 @@ type ListResponse<T> = {
   items: T[]
 }
 
+type CraftCacheSnapshot = {
+  generatedAt: string
+  collections: CraftCollection[]
+  collectionItems: Record<string, CraftCollectionItem[]>
+}
+
 const craftApiUrl = process.env.CRAFT_API_URL
+const craftCachePath = path.join(process.cwd(), ".cache", "craft-data.json")
 
 function getCraftApiUrl() {
   if (!craftApiUrl) {
@@ -48,7 +57,22 @@ async function craftFetch<T>(path: string): Promise<T> {
   return (await response.json()) as T
 }
 
+async function readCraftCache() {
+  try {
+    const snapshot = await readFile(craftCachePath, "utf8")
+    return JSON.parse(snapshot) as CraftCacheSnapshot
+  } catch {
+    return null
+  }
+}
+
 export async function getCraftCollections() {
+  const cachedSnapshot = await readCraftCache()
+
+  if (cachedSnapshot) {
+    return cachedSnapshot.collections
+  }
+
   const response = await craftFetch<ListResponse<CraftCollection>>("/collections")
   return response.items
 }
@@ -82,6 +106,12 @@ export async function getPostsCollection() {
 }
 
 export async function getCraftPostItems() {
+  const cachedSnapshot = await readCraftCache()
+
+  if (cachedSnapshot?.collectionItems.Posts) {
+    return cachedSnapshot.collectionItems.Posts
+  }
+
   const collection = await getPostsCollection()
   const response = await craftFetch<ListResponse<CraftCollectionItem>>(
     `/collections/${collection.id}/items?maxDepth=3`,
@@ -91,6 +121,12 @@ export async function getCraftPostItems() {
 }
 
 export async function getCraftCollectionItems(collectionName: string) {
+  const cachedSnapshot = await readCraftCache()
+
+  if (cachedSnapshot?.collectionItems[collectionName]) {
+    return cachedSnapshot.collectionItems[collectionName]
+  }
+
   const collection = await getCollectionByName(collectionName)
   const response = await craftFetch<ListResponse<CraftCollectionItem>>(
     `/collections/${collection.id}/items?maxDepth=3`,

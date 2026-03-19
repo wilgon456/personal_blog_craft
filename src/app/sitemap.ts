@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { getPageBySlug } from "@/lib/pages"
-import { getPublishedPosts, getTagSummaries } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
+import { getTagSummaries } from "@/lib/posts"
 import { absoluteUrl } from "@/lib/site"
 
 export const dynamic = "force-static"

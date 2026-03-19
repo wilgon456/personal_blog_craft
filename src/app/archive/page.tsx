@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/empty-state"
-import { getArchiveGroups, getPublishedPosts } from "@/lib/posts"
+import { getArchiveGroups } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteDescription } from "@/lib/site"
 import Link from "next/link"
 

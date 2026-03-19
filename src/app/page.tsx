@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { HomeFeed } from "@/components/home-feed"
-import { getPublishedPosts, getTagSummaries } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
+import { getTagSummaries } from "@/lib/posts"
 import {
   absoluteUrl,
   siteAuthorName,
