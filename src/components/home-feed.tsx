@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { startTransition, useMemo, useRef, useState } from "react"
 import { EmptyState } from "@/components/empty-state"
 import { PostCard } from "@/components/post-card"
 import {
@@ -12,8 +14,6 @@ import {
 } from "@/lib/posts"
 import { basePath } from "@/lib/site"
 import type { BlogPost } from "@/types/post"
-import Link from "next/link"
-import { startTransition, useMemo, useRef, useState } from "react"
 
 type TagSummary = {
   label: string
@@ -86,8 +86,6 @@ export function HomeFeed({
     )
   }, [currentCategory?.key, currentOrder, posts])
   const latestPosts = getLatestPosts(filteredPosts, 12)
-  const featuredPost = latestPosts[0] ?? null
-  const feedPosts = featuredPost ? latestPosts.slice(1) : latestPosts
 
   function syncUrl(categoryKey: string, order: "asc" | "desc") {
     if (typeof window === "undefined") {
@@ -164,47 +162,6 @@ export function HomeFeed({
         ))}
       </div>
 
-      {featuredPost ? (
-        <section className="featured-post">
-          <div className="home-feed-header">
-            <div className="home-feed-title-wrap">
-              <p className="home-panel-heading">Featured Post</p>
-            </div>
-          </div>
-          <article className="featured-post__card">
-            {featuredPost.heroImage ? (
-              <div className="featured-post__image">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt={featuredPost.title} src={featuredPost.heroImage} />
-              </div>
-            ) : null}
-            <div className="featured-post__body">
-              {featuredPost.category ? (
-                <span className="featured-post__tag">{featuredPost.category}</span>
-              ) : featuredPost.tags[0] ? (
-                <Link
-                  className="featured-post__tag"
-                  href={`/tags/${featuredPost.tagKeys[featuredPost.tags[0]]}`}
-                >
-                  {featuredPost.tags[0]}
-                </Link>
-              ) : null}
-              <Link href={`/posts/${featuredPost.slug}`}>
-                <h2 className="featured-post__title">{featuredPost.title}</h2>
-              </Link>
-              <div className="post-card__meta">
-                <span>{featuredPost.displayDate}</span>
-                <span>|</span>
-                <span>{featuredPost.readingMinutes} min read</span>
-              </div>
-              {featuredPost.excerpt ? (
-                <p className="featured-post__excerpt">{featuredPost.excerpt}</p>
-              ) : null}
-            </div>
-          </article>
-        </section>
-      ) : null}
-
       <div className="home-feed-header">
         <div className="home-feed-title-wrap">
           <details className="home-dropdown" ref={dropdownRef}>
@@ -250,7 +207,7 @@ export function HomeFeed({
 
       {latestPosts.length ? (
         <div className="post-list">
-          {feedPosts.map((post) => (
+          {latestPosts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>

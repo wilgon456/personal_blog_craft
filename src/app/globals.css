@@ -329,7 +329,7 @@ img {
   top: 72px;
   align-self: start;
   grid-column: span 3 / span 3;
-  gap: 1rem;
+  gap: 1.35rem;
   max-height: calc(100vh - 88px);
   overflow: auto;
   scrollbar-width: none;
@@ -608,7 +608,7 @@ img {
 
 .home-right-group {
   display: grid;
-  gap: 1.15rem;
+  gap: 1.35rem;
 }
 
 .home-right-card {
@@ -714,7 +714,7 @@ img {
 }
 
 .home-right-footer {
-  margin-top: 0.35rem;
+  margin-top: 0.7rem;
 }
 
 .post-list {
