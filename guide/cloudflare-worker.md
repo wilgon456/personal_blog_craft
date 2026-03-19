@@ -104,6 +104,5 @@ curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*"
 
 ## Notes
 
-- The current GitHub Pages workflow still keeps the existing 15-minute schedule as a fallback.
-- After the Worker is confirmed working, you can remove the GitHub schedule if you want fewer redundant builds.
+- The GitHub Pages workflow now relies on `push`, manual runs, and Cloudflare-triggered `repository_dispatch`.
 - This Worker compares only published collection items. Draft-only changes do not trigger deployment.

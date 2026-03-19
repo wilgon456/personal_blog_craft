@@ -79,7 +79,7 @@ guide/
 
 - `main` 푸시 시 자동 배포
 - 수동 실행 가능
-- 15분 주기 스케줄 재빌드
+- Cloudflare Worker 변경 감지 기반 재배포
 - `CRAFT_API_URL`은 GitHub Actions Secret 사용
 
 현재 GitHub Pages 주소:
