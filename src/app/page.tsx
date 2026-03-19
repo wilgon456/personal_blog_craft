@@ -1,12 +1,12 @@
-import Link from "next/link"
+/* eslint-disable @next/next/no-img-element */
 import { HomeFeed } from "@/components/home-feed"
-import { getTagSummaries } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import {
   absoluteUrl,
   siteAuthorName,
   siteAuthorUrl,
   siteDescription,
+  siteProfileImage,
   siteName,
   siteUrl,
 } from "@/lib/site"
@@ -24,6 +24,7 @@ const personJsonLd = {
   "@type": "Person",
   name: siteAuthorName,
   url: siteUrl,
+  image: absoluteUrl(siteProfileImage),
 }
 
 function ContactIcon({ kind }: { kind: "github" | "instagram" }) {
@@ -69,7 +70,6 @@ function ContactIcon({ kind }: { kind: "github" | "instagram" }) {
 
 export default async function HomePage() {
   const posts = await getPublishedPosts()
-  const tagSummaries = getTagSummaries(posts).slice(0, 20)
   const initials = siteAuthorName.slice(0, 2).toUpperCase()
   const startedYear = 2026
   const currentYear = new Date().getFullYear()
@@ -88,7 +88,6 @@ export default async function HomePage() {
         description={siteDescription}
         initials={initials}
         posts={posts}
-        tagSummaries={tagSummaries}
       />
 
       <aside className="home-right">
@@ -96,7 +95,9 @@ export default async function HomePage() {
           <div className="panel home-right-card">
             <p className="home-panel-heading">Profile</p>
             <div className="home-profile">
-              <div className="home-avatar">{initials}</div>
+              <div className="home-avatar">
+                <img alt={siteAuthorName} src={siteProfileImage} />
+              </div>
               <div className="home-profile__content">
                 <div className="home-profile__name">{siteAuthorName}</div>
                 <div className="home-profile__role">frontend developer</div>
@@ -108,23 +109,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="home-right-group">
-          <div className="panel home-right-card">
-            <p className="home-panel-heading">Service</p>
-            <div className="home-link-grid">
-              <Link href="/archive">
-                <span>Archive</span>
-                <span className="home-contact-label">Open</span>
-              </Link>
-              <Link href="/search">
-                <span>Search</span>
-                <span className="home-contact-label">Open</span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="home-right-group">
+        <section className="home-right-group home-right-group--spaced">
           <div className="panel home-right-card">
             <p className="home-panel-heading">Contact</p>
             <div className="home-contact-list">
@@ -152,7 +137,7 @@ export default async function HomePage() {
 
         <section className="home-right-group home-right-footer">
           <p className="home-copyright">
-            Copyright {startedYear === currentYear ? currentYear : `${startedYear}-${currentYear}`}. Tuchi. All rights reserved.
+            Copyright {startedYear === currentYear ? currentYear : `${startedYear}-${currentYear}`}. Tuchi
           </p>
         </section>
       </aside>

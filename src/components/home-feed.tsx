@@ -6,27 +6,20 @@ import { EmptyState } from "@/components/empty-state"
 import { PostCard } from "@/components/post-card"
 import {
   ALL_CATEGORY_KEY,
-  countUniqueTags,
   filterPostsByCategory,
   getCategorySummaries,
   getLatestPosts,
+  getTagSummaries,
   sortPostsByDate,
 } from "@/lib/posts"
 import { basePath } from "@/lib/site"
 import type { BlogPost } from "@/types/post"
-
-type TagSummary = {
-  label: string
-  count: number
-  key: string
-}
 
 type HomeFeedProps = {
   authorName: string
   description: string
   initials: string
   posts: BlogPost[]
-  tagSummaries: TagSummary[]
 }
 
 function ChevronDownIcon() {
@@ -58,18 +51,16 @@ function SortArrowIcon({ direction }: { direction: "asc" | "desc" }) {
 }
 
 function SortButton({
-  active = false,
   direction,
   onClick,
 }: {
-  active?: boolean
   direction: "asc" | "desc"
   onClick: () => void
 }) {
   return (
     <button
-      aria-label={direction === "desc" ? "Newest first" : "Oldest first"}
-      className={`home-sort-icon${active ? " is-active" : ""}`}
+      aria-label={direction === "desc" ? "Switch to oldest first" : "Switch to newest first"}
+      className="home-sort-icon is-active"
       onClick={onClick}
       title={direction === "desc" ? "Newest first" : "Oldest first"}
       type="button"
@@ -84,7 +75,6 @@ export function HomeFeed({
   description,
   initials,
   posts,
-  tagSummaries,
 }: HomeFeedProps) {
   const dropdownRef = useRef<HTMLDetailsElement>(null)
   const [currentOrder, setCurrentOrder] = useState<"asc" | "desc">(() => {
@@ -113,6 +103,10 @@ export function HomeFeed({
       currentOrder,
     )
   }, [currentCategory?.key, currentOrder, posts])
+  const filteredTagSummaries = useMemo(
+    () => getTagSummaries(filteredPosts).slice(0, 20),
+    [filteredPosts],
+  )
   const latestPosts = getLatestPosts(filteredPosts, 12)
 
   function syncUrl(categoryKey: string, order: "asc" | "desc") {
@@ -170,10 +164,7 @@ export function HomeFeed({
       </section>
 
       <section className="home-search-card panel">
-        <div className="home-search-head">
-          <p className="home-panel-heading">Search</p>
-          <p className="home-search-note">Find notes, workflows, and CMS posts.</p>
-        </div>
+        <p className="home-panel-heading">Search</p>
         <form action={`${basePath}/search/`} method="get">
           <input
             aria-label="Search posts"
@@ -212,31 +203,25 @@ export function HomeFeed({
                 ))}
               </div>
             </details>
-            <p className="home-feed-meta">
-              {filteredPosts.length} posts · {countUniqueTags(filteredPosts)} tags
-            </p>
+            {filteredTagSummaries.length ? (
+              <div className="home-mobile-tags home-tags-strip">
+                <span className="home-mobile-tags__label">Browse tags</span>
+                {filteredTagSummaries.map((tag) => (
+                  <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
+                    {tag.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="home-feed-toolbar">
-            <div className="home-mobile-tags home-tags-strip">
-              <span className="home-mobile-tags__label">Browse tags</span>
-              {tagSummaries.map((tag) => (
-                <Link className="tag-pill" href={`/tags/${tag.key}`} key={tag.key}>
-                  {tag.label}
-                </Link>
-              ))}
-            </div>
-
             <div className="home-feed-header__actions">
               <SortButton
-                active={currentOrder === "desc"}
-                direction="desc"
-                onClick={() => updateQuery({ order: "desc" })}
-              />
-              <SortButton
-                active={currentOrder === "asc"}
-                direction="asc"
-                onClick={() => updateQuery({ order: "asc" })}
+                direction={currentOrder}
+                onClick={() =>
+                  updateQuery({ order: currentOrder === "desc" ? "asc" : "desc" })
+                }
               />
             </div>
           </div>

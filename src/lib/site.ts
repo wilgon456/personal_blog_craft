@@ -7,6 +7,7 @@ export const siteAuthorUrl = process.env.BLOG_AUTHOR_URL || ""
 export const siteName = "TUCHIZ-LOG"
 export const siteDescription =
   "A personal blog generated from Craft content and served as a static site."
+export const siteProfileImage = `${basePath}/profile_img.png`
 export const siteKeywords = [
   "Craft CMS",
   "Next.js blog",

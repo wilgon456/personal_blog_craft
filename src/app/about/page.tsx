@@ -5,6 +5,7 @@ import {
   absoluteUrl,
   siteAuthorName,
   siteAuthorUrl,
+  siteProfileImage,
   siteName,
 } from "@/lib/site"
 import Link from "next/link"
@@ -54,14 +55,13 @@ export default async function AboutPage() {
     month: "short",
     day: "numeric",
   }).format(new Date(page.updatedAt))
-  const initials = siteAuthorName.slice(0, 2).toUpperCase()
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: siteAuthorName,
     url: siteAuthorUrl || absoluteUrl("about/"),
     description: page.seoDescription,
-    image: page.heroImage || undefined,
+    image: page.heroImage || absoluteUrl(siteProfileImage),
   }
 
   return (
@@ -85,15 +85,9 @@ export default async function AboutPage() {
             </div>
           </div>
 
-          {page.heroImage ? (
-            <div className="about-portrait">
-              <img alt={page.title} src={page.heroImage} />
-            </div>
-          ) : (
-            <div className="about-avatar" aria-hidden="true">
-              {initials}
-            </div>
-          )}
+          <div className="about-portrait">
+            <img alt={page.title} src={page.heroImage || siteProfileImage} />
+          </div>
         </header>
 
         <div
