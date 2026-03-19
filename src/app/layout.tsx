@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Noto_Sans_KR } from "next/font/google"
+import localFont from "next/font/local"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import "./globals.css"
@@ -11,10 +11,11 @@ import {
   siteUrl,
 } from "@/lib/site"
 
-const bodyFont = Noto_Sans_KR({
-  variable: "--font-body",
-  subsets: ["latin"],
+const pretendard = localFont({
+  src: "../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+  variable: "--font-pretendard",
   display: "swap",
+  weight: "45 920",
 })
 
 export const metadata: Metadata = {
@@ -50,7 +51,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={bodyFont.variable}>
+      <body className={pretendard.variable}>
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {

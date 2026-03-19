@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { HomeFeed } from "@/components/home-feed"
-import { getPublishedPosts } from "@/lib/posts-data"
 import { getTagSummaries } from "@/lib/posts"
+import { getPublishedPosts } from "@/lib/posts-data"
 import {
   absoluteUrl,
   siteAuthorName,
@@ -152,7 +152,7 @@ export default async function HomePage() {
 
         <section className="home-right-group home-right-footer">
           <p className="home-copyright">
-            ⓒ Copyright {startedYear === currentYear ? currentYear : `${startedYear}-${currentYear}`}. Tuchi. All rights reserved.
+            Copyright {startedYear === currentYear ? currentYear : `${startedYear}-${currentYear}`}. Tuchi. All rights reserved.
           </p>
         </section>
       </aside>
