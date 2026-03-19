@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "craft-content-dispatch",
+  "main": "src/index.js",
+  "compatibility_date": "2026-03-19",
+  "vars": {
+    "CRAFT_API_URL": "https://connect.craft.do/links/7e5COnRkC3c/api/v1",
+    "CRAFT_COLLECTION_NAME": "Posts",
+    "CRAFT_ITEMS_MAX_DEPTH": "-1",
+    "GITHUB_EVENT_TYPE": "craft_content_changed",
+    "GITHUB_OWNER": "wilgon456",
+    "GITHUB_REPO": "personal_blog_craft"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "CONTENT_STATE",
+      "id": "a6acb9807a754a958eb9a0a9b4cfd168"
+    }
+  ]
+}
