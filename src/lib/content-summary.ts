@@ -1,13 +1,20 @@
+import { stripHtmlTags } from "@/lib/craft-format"
+
 export function markdownToPlainText(markdown: string) {
-  return markdown
+  const withMarkdownStripped = markdown
     .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
     .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
     .replace(/`{1,3}[^`]*`{1,3}/g, " ")
     .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\s#{1,6}\s+/g, " ")
     .replace(/^>\s?/gm, "")
     .replace(/^[-*+]\s+/gm, "")
     .replace(/^\d+\.\s+/gm, "")
+    .replace(/<\/?highlight[^>]*>/gi, " ")
     .replace(/[*_~]/g, "")
+    .replace(/&[a-z]+;/gi, " ")
+
+  return stripHtmlTags(withMarkdownStripped)
     .replace(/\s+/g, " ")
     .trim()
 }

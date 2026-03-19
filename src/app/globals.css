@@ -1172,6 +1172,17 @@ img {
   color: var(--muted);
 }
 
+.article-body mark.craft-highlight {
+  padding: 0.05em 0.35em;
+  border-radius: 0.4em;
+  background: rgba(255, 214, 102, 0.28);
+  color: inherit;
+}
+
+.article-body mark.craft-highlight--gradient-red {
+  background: linear-gradient(180deg, rgba(255, 149, 149, 0.42), rgba(255, 101, 101, 0.22));
+}
+
 .article-navigation {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

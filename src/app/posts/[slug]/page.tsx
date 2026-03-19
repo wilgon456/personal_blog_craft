@@ -112,6 +112,19 @@ export default async function PostPage({ params }: PostPageProps) {
               <span>|</span>
               <span>{post.readingMinutes} min read</span>
             </div>
+            {post.heroImage ? (
+              <div
+                className="post-card__image"
+                style={{
+                  borderRadius: "24px",
+                  marginBottom: "1rem",
+                  marginTop: "1rem",
+                  overflow: "hidden",
+                }}
+              >
+                <img alt={post.title} src={post.heroImage} />
+              </div>
+            ) : null}
             {post.excerpt ? (
               <p className="article-header__summary">{post.excerpt}</p>
             ) : null}
@@ -127,15 +140,6 @@ export default async function PostPage({ params }: PostPageProps) {
               ))}
             </div>
           </header>
-
-          {post.heroImage ? (
-            <div
-              className="post-card__image"
-              style={{ borderRadius: "24px", marginBottom: "1.4rem", overflow: "hidden" }}
-            >
-              <img alt={post.title} src={post.heroImage} />
-            </div>
-          ) : null}
 
           <div
             className="article-body"
