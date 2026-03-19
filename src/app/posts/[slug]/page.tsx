@@ -6,6 +6,7 @@ import {
   getPostBySlug,
   getPublishedPosts,
 } from "@/lib/posts"
+import { absoluteUrl, siteAuthorName, siteAuthorUrl, siteName } from "@/lib/site"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -35,6 +36,22 @@ export async function generateMetadata({ params }: PostPageProps) {
   return {
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt,
+    alternates: {
+      canonical: absoluteUrl(`posts/${post.slug}/`),
+    },
+    openGraph: {
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.excerpt,
+      url: absoluteUrl(`posts/${post.slug}/`),
+      type: "article",
+      images: post.heroImage ? [{ url: post.heroImage }] : undefined,
+    },
+    twitter: {
+      card: post.heroImage ? "summary_large_image" : "summary",
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.excerpt,
+      images: post.heroImage ? [post.heroImage] : undefined,
+    },
   }
 }
 
@@ -51,6 +68,25 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const html = markdownToHtml(post.contentMarkdown)
   const { previousPost, nextPost } = getAdjacentPosts(posts, post.slug)
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.seoDescription || post.excerpt,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    author: {
+      "@type": "Person",
+      name: siteAuthorName,
+      url: siteAuthorUrl || absoluteUrl(),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteName,
+    },
+    mainEntityOfPage: absoluteUrl(`posts/${post.slug}/`),
+    image: post.heroImage ? [post.heroImage] : undefined,
+  }
   const relatedPosts = posts
     .filter(
       (candidate) =>
@@ -62,6 +98,12 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <section className="page-grid">
       <div className="page-main">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(articleJsonLd),
+          }}
+          type="application/ld+json"
+        />
         <article className="article-shell">
           <header className="article-header">
             <p className="article-header__eyebrow">Post</p>

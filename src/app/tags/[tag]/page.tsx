@@ -1,6 +1,7 @@
 import { EmptyState } from "@/components/empty-state"
 import { PostCard } from "@/components/post-card"
 import { findDisplayTagByKey, getPublishedPosts } from "@/lib/posts"
+import { absoluteUrl } from "@/lib/site"
 import { notFound } from "next/navigation"
 
 type TagPageProps = {
@@ -31,6 +32,11 @@ export async function generateMetadata({ params }: TagPageProps) {
 
   return {
     title: displayTag ? `Tag: ${displayTag}` : "Tag",
+    alternates: displayTag
+      ? {
+          canonical: absoluteUrl(`tags/${tag}/`),
+        }
+      : undefined,
   }
 }
 

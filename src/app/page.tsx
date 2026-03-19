@@ -7,7 +7,29 @@ import {
   getPublishedPosts,
   getTagSummaries,
 } from "@/lib/posts"
-import { basePath, siteAuthorName, siteDescription } from "@/lib/site"
+import {
+  absoluteUrl,
+  basePath,
+  siteAuthorName,
+  siteDescription,
+  siteName,
+  siteUrl,
+} from "@/lib/site"
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteName,
+  url: absoluteUrl(),
+  description: siteDescription,
+}
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: siteAuthorName,
+  url: siteUrl,
+}
 
 export default async function HomePage() {
   const posts = await getPublishedPosts()
@@ -17,6 +39,12 @@ export default async function HomePage() {
   return (
     <section className="page-grid">
       <div className="page-main">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([websiteJsonLd, personJsonLd]),
+          }}
+          type="application/ld+json"
+        />
         <section className="hero panel">
           <p className="hero__eyebrow">Writing from Craft</p>
           <h1>

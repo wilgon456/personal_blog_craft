@@ -1,9 +1,14 @@
 import { EmptyState } from "@/components/empty-state"
 import { getArchiveGroups, getPublishedPosts } from "@/lib/posts"
+import { absoluteUrl, siteDescription } from "@/lib/site"
 import Link from "next/link"
 
 export const metadata = {
   title: "Archive",
+  description: `Browse the archive timeline for ${siteDescription}`,
+  alternates: {
+    canonical: absoluteUrl("archive/"),
+  },
 }
 
 export default async function ArchivePage() {

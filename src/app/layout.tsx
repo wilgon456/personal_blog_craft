@@ -3,9 +3,11 @@ import { Manrope, Newsreader } from "next/font/google"
 import Link from "next/link"
 import "./globals.css"
 import {
+  absoluteUrl,
   siteAuthorName,
   siteAuthorUrl,
   siteDescription,
+  siteKeywords,
   siteName,
   siteUrl,
 } from "@/lib/site"
@@ -29,6 +31,23 @@ export const metadata: Metadata = {
     template: `%s | ${siteName}`,
   },
   description: siteDescription,
+  keywords: siteKeywords,
+  alternates: {
+    canonical: absoluteUrl(),
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: absoluteUrl(),
+    title: siteName,
+    description: siteDescription,
+    siteName,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: siteDescription,
+  },
 }
 
 export default function RootLayout({
