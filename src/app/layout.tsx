@@ -72,8 +72,8 @@ export default function RootLayout({
               </Link>
 
               <nav className="site-nav" aria-label="Main navigation">
-                <Link href="/">HOME</Link>
                 <ThemeToggle />
+                <Link href="/">HOME</Link>
                 <Link href="/about">ABOUT</Link>
               </nav>
             </div>

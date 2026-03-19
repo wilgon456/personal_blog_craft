@@ -171,9 +171,7 @@ export default async function HomePage() {
 
         <section className="home-right-group home-right-footer">
           <p className="home-copyright">
-            Copyright{" "}
-            {startedYear === currentYear ? currentYear : `${startedYear} - ${currentYear}`}{" "}
-            {siteAuthorName}
+            ⓒ Copyright {startedYear === currentYear ? currentYear : `${startedYear}-${currentYear}`}. Tuchi. All rights reserved.
           </p>
         </section>
       </aside>
