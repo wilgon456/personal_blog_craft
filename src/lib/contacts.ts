@@ -32,6 +32,36 @@ function normalizeIcon(value: unknown): ContactIconKind {
   return allowedIcons.includes(raw) ? raw : "link"
 }
 
+function looksLikeEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function hasProtocol(value: string) {
+  return /^[a-z][a-z0-9+.-]*:/i.test(value)
+}
+
+function normalizeContactUrl(url: string, icon: ContactIconKind) {
+  const normalized = url.trim()
+
+  if (!normalized) {
+    return ""
+  }
+
+  if (icon === "email" || looksLikeEmail(normalized)) {
+    if (normalized.toLowerCase().startsWith("mailto:")) {
+      return normalized
+    }
+
+    return `mailto:${normalized}`
+  }
+
+  if (hasProtocol(normalized) || normalized.startsWith("/") || normalized.startsWith("#")) {
+    return normalized
+  }
+
+  return `https://${normalized}`
+}
+
 function getDefaultContacts(): ContactLink[] {
   const defaults: ContactLink[] = [
     {
@@ -64,13 +94,14 @@ function normalizeContact(
   const properties = item.properties ?? {}
   const title = ensureString(item.title) || "Contact"
   const label = ensureString(properties.label) || title
-  const url = ensureString(properties.url)
+  const icon = normalizeIcon(properties.icon)
+  const url = normalizeContactUrl(ensureString(properties.url), icon)
 
   return {
     id: item.id,
     title,
     label,
-    icon: normalizeIcon(properties.icon),
+    icon,
     url,
     enabled: ensureBoolean(properties.enabled),
   }

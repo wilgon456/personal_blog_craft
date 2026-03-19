@@ -170,6 +170,10 @@ function isListItemMarkdown(markdown: string) {
   return /^\s*(?:[-*+]|\d+\.)\s+/.test(markdown)
 }
 
+function isOrderedListItemMarkdown(markdown: string) {
+  return /^\s*\d+\.\s+/.test(markdown)
+}
+
 function indentMarkdown(markdown: string, spaces = 4) {
   const indent = " ".repeat(spaces)
   return markdown
@@ -179,21 +183,64 @@ function indentMarkdown(markdown: string, spaces = 4) {
 }
 
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
-  return blocks
-    .map((block) => {
-      const current = blockToMarkdown(block)
-      const children = block.content ? flattenCraftBlocks(block.content) : ""
+  const parts: string[] = []
 
-      if (current && children) {
-        if (isListItemMarkdown(current)) {
-          return `${current}\n${indentMarkdown(children)}`
-        }
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index]
+    const current = blockToMarkdown(block)
+    const children = block.content ? flattenCraftBlocks(block.content) : ""
 
-        return `${current}\n\n${children}`
+    // Craft 문서에서 번호 섹션의 본문이 같은 레벨 형제 블록으로 내려오는 경우를 흡수한다.
+    if (current && isOrderedListItemMarkdown(current)) {
+      const sectionChildren: string[] = []
+
+      if (children) {
+        sectionChildren.push(children)
       }
 
-      return current || children
-    })
-    .filter(Boolean)
-    .join("\n\n")
+      let cursor = index + 1
+      while (cursor < blocks.length) {
+        const sibling = blocks[cursor]
+        const siblingMarkdown = blockToMarkdown(sibling)
+
+        if (siblingMarkdown && isOrderedListItemMarkdown(siblingMarkdown)) {
+          break
+        }
+
+        const siblingChildren = sibling.content ? flattenCraftBlocks(sibling.content) : ""
+
+        if (siblingMarkdown && siblingChildren) {
+          sectionChildren.push(`${siblingMarkdown}\n\n${siblingChildren}`)
+        } else if (siblingMarkdown || siblingChildren) {
+          sectionChildren.push(siblingMarkdown || siblingChildren)
+        }
+
+        cursor += 1
+      }
+
+      if (sectionChildren.length) {
+        parts.push(`${current}\n${indentMarkdown(sectionChildren.join("\n\n"))}`)
+      } else {
+        parts.push(current)
+      }
+
+      index = cursor - 1
+      continue
+    }
+
+    if (current && children) {
+      if (isListItemMarkdown(current)) {
+        parts.push(`${current}\n${indentMarkdown(children)}`)
+      } else {
+        parts.push(`${current}\n\n${children}`)
+      }
+      continue
+    }
+
+    if (current || children) {
+      parts.push(current || children)
+    }
+  }
+
+  return parts.join("\n\n")
 }
