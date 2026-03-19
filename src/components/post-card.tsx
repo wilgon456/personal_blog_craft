@@ -17,6 +17,10 @@ export function PostCard({ post, compact = false }: PostCardProps) {
       ) : null}
 
       <div className="post-card__body">
+        {post.category ? (
+          <div className="post-card__category">{post.category}</div>
+        ) : null}
+
         <div className="post-card__meta">
           <span>{post.displayDate}</span>
           <span>|</span>

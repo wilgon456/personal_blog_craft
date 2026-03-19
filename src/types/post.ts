@@ -3,6 +3,8 @@ export type BlogPost = {
   title: string
   slug: string
   excerpt: string
+  category: string
+  categoryKey: string
   tags: string[]
   tagKeys: Record<string, string>
   published: boolean

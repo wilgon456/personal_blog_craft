@@ -8,11 +8,11 @@ export default function NotFound() {
       <p>
         The link may have changed, or the post might not be published yet.
       </p>
-      <div className="hero__actions">
-        <Link className="button-link" href="/">
+      <div className="action-row">
+        <Link className="button-primary" href="/">
           Return home
         </Link>
-        <Link className="button-muted" href="/archive">
+        <Link className="button-secondary" href="/archive">
           Visit archive
         </Link>
       </div>

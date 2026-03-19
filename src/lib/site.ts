@@ -4,7 +4,7 @@ export const siteUrl = process.env.SITE_URL || fallbackSiteUrl
 export const basePath = process.env.BASE_PATH || ""
 export const siteAuthorName = process.env.BLOG_AUTHOR_NAME || "tuchi"
 export const siteAuthorUrl = process.env.BLOG_AUTHOR_URL || ""
-export const siteName = `${siteAuthorName}'s log`
+export const siteName = "TUCHIZ-LOG"
 export const siteDescription =
   "A personal blog generated from Craft content and served as a static site."
 export const siteKeywords = [

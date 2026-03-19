@@ -1,13 +1,18 @@
 import type { MetadataRoute } from "next"
+import { getPageBySlug } from "@/lib/pages"
 import { getPublishedPosts, getTagSummaries } from "@/lib/posts"
 import { absoluteUrl } from "@/lib/site"
 
 export const dynamic = "force-static"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getPublishedPosts()
+  const [posts, aboutPage] = await Promise.all([
+    getPublishedPosts(),
+    getPageBySlug("about"),
+  ])
   const tags = getTagSummaries(posts)
-  const latestDate = posts[0]?.updatedAt || new Date().toISOString()
+  const latestDate =
+    aboutPage?.updatedAt || posts[0]?.updatedAt || new Date().toISOString()
 
   return [
     {
@@ -19,6 +24,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: absoluteUrl("archive/"),
       lastModified: latestDate,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl("about/"),
+      lastModified: aboutPage?.updatedAt || latestDate,
       changeFrequency: "weekly",
       priority: 0.8,
     },

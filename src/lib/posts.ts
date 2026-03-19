@@ -2,6 +2,8 @@ import type { BlogPost } from "@/types/post"
 import { slugify } from "transliteration"
 import { flattenCraftBlocks, getCraftPostItems } from "@/lib/craft"
 
+export const ALL_CATEGORY_KEY = "all"
+
 function ensureString(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
@@ -63,6 +65,13 @@ export function normalizeTagKey(tag: string) {
   })
 }
 
+export function normalizeCategoryKey(category: string) {
+  return slugify(category, {
+    lowercase: true,
+    separator: "-",
+  })
+}
+
 function readingMinutesFromText(text: string) {
   const wordCount = stripMarkdown(text).split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(wordCount / 220))
@@ -90,6 +99,7 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
     ensureString(properties.excerpt) ||
     takeExcerpt(stripMarkdown(contentMarkdown), 180)
   const rawTags = ensureStringArray(properties.tags)
+  const category = ensureString(properties.category)
   const publishedAt =
     ensureDate(properties.published_at) ||
     ensureDate(properties.updated_at) ||
@@ -105,6 +115,8 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
     title,
     slug,
     excerpt,
+    category,
+    categoryKey: category ? normalizeCategoryKey(category) : "",
     tags: rawTags,
     tagKeys,
     published: ensureBoolean(properties.published),
@@ -162,6 +174,58 @@ export function getTagSummaries(posts: BlogPost[]) {
       key: normalizeTagKey(label),
     }))
     .sort((left, right) => right.count - left.count)
+}
+
+export function getCategorySummaries(posts: BlogPost[]) {
+  const counts = new Map<string, number>()
+
+  for (const post of posts) {
+    if (!post.category) {
+      continue
+    }
+
+    counts.set(post.category, (counts.get(post.category) ?? 0) + 1)
+  }
+
+  return [
+    {
+      label: "All",
+      count: posts.length,
+      key: ALL_CATEGORY_KEY,
+    },
+    ...[...counts.entries()]
+      .map(([label, count]) => ({
+        label,
+        count,
+        key: normalizeCategoryKey(label),
+      }))
+      .sort((left, right) => {
+        if (right.count !== left.count) {
+          return right.count - left.count
+        }
+
+        return left.label.localeCompare(right.label)
+      }),
+  ]
+}
+
+export function filterPostsByCategory(posts: BlogPost[], categoryKey: string) {
+  if (categoryKey === ALL_CATEGORY_KEY) {
+    return posts
+  }
+
+  return posts.filter((post) => post.categoryKey === categoryKey)
+}
+
+export function sortPostsByDate(
+  posts: BlogPost[],
+  order: "asc" | "desc" = "desc",
+) {
+  return [...posts].sort((left, right) => {
+    return order === "asc"
+      ? left.publishedAt.localeCompare(right.publishedAt)
+      : right.publishedAt.localeCompare(left.publishedAt)
+  })
 }
 
 export function getArchiveGroups(posts: BlogPost[]) {

@@ -5,7 +5,6 @@ import "./globals.css"
 import {
   absoluteUrl,
   siteAuthorName,
-  siteAuthorUrl,
   siteDescription,
   siteKeywords,
   siteName,
@@ -61,16 +60,8 @@ export default function RootLayout({
               </Link>
 
               <nav className="site-nav" aria-label="Main navigation">
-                <Link href="/">Home</Link>
-                <Link href="/archive">Archive</Link>
-                <Link href="/search">Search</Link>
-                {siteAuthorUrl ? (
-                  <a href={siteAuthorUrl} rel="noreferrer" target="_blank">
-                    About
-                  </a>
-                ) : (
-                  <span className="site-nav__muted">{siteAuthorName}</span>
-                )}
+                <Link href="/">HOME</Link>
+                <Link href="/about">ABOUT</Link>
               </nav>
             </div>
           </header>
@@ -79,7 +70,7 @@ export default function RootLayout({
 
           <footer className="site-footer">
             <div className="site-footer__inner">
-              <p>Built with Craft, Next.js, and GitHub Pages.</p>
+              <p />
               <p>
                 <span>{new Date().getFullYear()}</span>
                 <span>{siteAuthorName}</span>

@@ -53,21 +53,45 @@ export async function getCraftCollections() {
   return response.items
 }
 
-export async function getPostsCollection() {
+export async function getCollectionByName(
+  name: string,
+  fallbackToFirst = false,
+) {
   const collections = await getCraftCollections()
-  const postsCollection =
-    collections.find((collection) => collection.name === "Posts") ??
-    collections[0]
+  const matchedCollection = collections.find(
+    (collection) => collection.name === name,
+  )
 
-  if (!postsCollection) {
+  if (matchedCollection) {
+    return matchedCollection
+  }
+
+  if (fallbackToFirst && collections[0]) {
+    return collections[0]
+  }
+
+  if (!collections.length) {
     notFound()
   }
 
-  return postsCollection
+  notFound()
+}
+
+export async function getPostsCollection() {
+  return getCollectionByName("Posts", true)
 }
 
 export async function getCraftPostItems() {
   const collection = await getPostsCollection()
+  const response = await craftFetch<ListResponse<CraftCollectionItem>>(
+    `/collections/${collection.id}/items?maxDepth=3`,
+  )
+
+  return response.items
+}
+
+export async function getCraftCollectionItems(collectionName: string) {
+  const collection = await getCollectionByName(collectionName)
   const response = await craftFetch<ListResponse<CraftCollectionItem>>(
     `/collections/${collection.id}/items?maxDepth=3`,
   )
