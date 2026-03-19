@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import localFont from "next/font/local"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
 import "./globals.css"
 import {
   absoluteUrl,
+  siteBrandIcon,
   siteDescription,
   siteKeywords,
   siteName,
@@ -28,6 +30,14 @@ export const metadata: Metadata = {
   keywords: siteKeywords,
   alternates: {
     canonical: absoluteUrl(),
+  },
+  icons: {
+    icon: [
+      { url: siteBrandIcon, type: "image/png" },
+      { url: siteBrandIcon, sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: siteBrandIcon, type: "image/png" }],
+    shortcut: [siteBrandIcon],
   },
   openGraph: {
     type: "website",
@@ -68,7 +78,15 @@ export default function RootLayout({
           <header className="site-header">
             <div className="site-header__inner">
               <Link className="site-brand" href="/">
-                <span className="site-brand__eyebrow">TL</span>
+                <span className="site-brand__eyebrow">
+                  <Image
+                    alt={`${siteName} icon`}
+                    height={30}
+                    priority
+                    src={siteBrandIcon}
+                    width={30}
+                  />
+                </span>
                 <strong>{siteName}</strong>
               </Link>
 

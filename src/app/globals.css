@@ -192,15 +192,19 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2rem;
+  height: 2rem;
+  overflow: hidden;
   border-radius: 999px;
   background: linear-gradient(180deg, var(--surface-container-high), var(--surface-container));
   color: var(--muted);
   box-shadow: inset 0 0 0 1px var(--ghost-line);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+}
+
+.site-brand__eyebrow img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .site-nav {

@@ -8,6 +8,7 @@ export const siteName = "TUCHIZ-LOG"
 export const siteDescription =
   "A personal blog generated from Craft content and served as a static site."
 export const siteProfileImage = `${basePath}/profile_img.png`
+export const siteBrandIcon = `${basePath}/site-icon.png`
 export const siteKeywords = [
   "Craft CMS",
   "Next.js blog",
