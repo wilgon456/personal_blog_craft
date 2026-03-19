@@ -144,9 +144,9 @@ function escapeMarkdownText(value: string) {
 }
 
 function blockToMarkdown(block: CraftBlock) {
-  const markdown = block.markdown?.trim()
+  const markdown = block.markdown?.replace(/\s+$/, "")
 
-  if (markdown) {
+  if (markdown?.trim()) {
     return markdown
   }
 
@@ -166,13 +166,33 @@ function blockToMarkdown(block: CraftBlock) {
   return ""
 }
 
+function isListItemMarkdown(markdown: string) {
+  return /^\s*(?:[-*+]|\d+\.)\s+/.test(markdown)
+}
+
+function indentMarkdown(markdown: string, spaces = 4) {
+  const indent = " ".repeat(spaces)
+  return markdown
+    .split("\n")
+    .map((line) => (line.trim() ? `${indent}${line}` : ""))
+    .join("\n")
+}
+
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   return blocks
-    .flatMap((block) => {
+    .map((block) => {
       const current = blockToMarkdown(block)
-      const currentParts = current ? [current] : []
-      const children = block.content ? [flattenCraftBlocks(block.content)] : []
-      return [...currentParts, ...children]
+      const children = block.content ? flattenCraftBlocks(block.content) : ""
+
+      if (current && children) {
+        if (isListItemMarkdown(current)) {
+          return `${current}\n${indentMarkdown(children)}`
+        }
+
+        return `${current}\n\n${children}`
+      }
+
+      return current || children
     })
     .filter(Boolean)
     .join("\n\n")
