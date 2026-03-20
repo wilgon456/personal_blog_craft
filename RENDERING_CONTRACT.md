@@ -134,6 +134,35 @@ Expected guarantees:
 - body images render as images, not code
 - site font preload and font class remain intact
 
+### 7. Recorded Accepted Baseline
+
+The currently accepted rendering output is recorded as a baseline and should be treated as the reference shape unless intentionally updated.
+
+Baseline date:
+
+- `2026-03-20`
+
+Recorded pages:
+
+- `/posts/resource-ai_coding_tip`
+- `/posts/review-chat_gpt`
+
+Baseline source:
+
+- `scripts/rendering-baselines.mjs`
+
+What is fixed by the baseline:
+
+- `resource-ai_coding_tip`
+  - the opening Craft callout renders as one `craft-callout` container
+  - the three opening bullets stay inside that same callout container
+  - the page does not fall back to `<blockquote>` for that opening callout
+  - depth-1 image/text sections remain grouped without becoming code blocks
+- `review-chat_gpt`
+  - numbered `h2` sections remain sequential
+  - the first depth-1 group starts with the nested `h3`
+  - numbered sections do not regress into `<ol>`
+
 ## Regression Gates
 
 Any rendering-related change should keep all of these green.
@@ -168,9 +197,10 @@ This builds the site and verifies:
 
 - Pretendard is still loaded in the built site
 - a built post still contains sequential numbered headings
-- the known broken post still renders blockquote and images correctly
+- the known broken post still renders its callout and grouped content correctly
 - raw Craft tags do not leak into built post HTML
 - suspicious markdown-like code blocks do not appear in built post HTML
+- recorded baseline pages still contain the accepted HTML shape
 
 Script:
 

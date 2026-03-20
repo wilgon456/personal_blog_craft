@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import { renderingBaselines } from "./rendering-baselines.mjs"
 
 const rootDir = process.cwd()
 const outDir = path.join(rootDir, "out")
@@ -126,6 +127,34 @@ function assertOutlineGroupingLooksHealthy() {
   }
 }
 
+function assertRecordedBaselines() {
+  for (const [baselineName, baseline] of Object.entries(renderingBaselines.pages)) {
+    const filePath = path.join(postsDir, baseline.path, "index.html")
+
+    if (!fs.existsSync(filePath)) {
+      fail(`Missing built HTML for recorded baseline ${baselineName}.`)
+    }
+
+    const html = readFile(filePath)
+
+    for (const expected of baseline.mustContain) {
+      if (!html.includes(expected)) {
+        fail(
+          `Recorded baseline ${baselineName} is missing expected HTML: ${expected}`,
+        )
+      }
+    }
+
+    for (const forbidden of baseline.mustNotContain) {
+      if (html.includes(forbidden)) {
+        fail(
+          `Recorded baseline ${baselineName} contains forbidden HTML: ${forbidden}`,
+        )
+      }
+    }
+  }
+}
+
 function main() {
   const postHtmlPaths = getPostHtmlPaths()
 
@@ -137,6 +166,7 @@ function main() {
   assertNumberedHeadingsExist(postHtmlPaths)
   assertKnownProblemPostLooksHealthy()
   assertOutlineGroupingLooksHealthy()
+  assertRecordedBaselines()
 
   for (const filePath of postHtmlPaths) {
     const html = readFile(filePath)
