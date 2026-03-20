@@ -78,3 +78,12 @@ export async function getPageBySlug(slug: string) {
   const pages = await getPublishedPages()
   return pages.find((page) => page.slug === slug) ?? null
 }
+
+function matchesAboutPage(page: SitePage) {
+  return page.slug === "about" || toSlug(page.title, page.id) === "about"
+}
+
+export async function getAboutPage() {
+  const pages = await getPublishedPages()
+  return pages.find(matchesAboutPage) ?? null
+}

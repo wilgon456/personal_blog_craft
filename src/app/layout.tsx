@@ -97,6 +97,7 @@ export default function RootLayout({
                 <ThemeToggle />
                 <Link href="/">HOME</Link>
                 <Link href="/about">ABOUT</Link>
+                <Link href="/archive">ARCHIVE</Link>
               </nav>
             </div>
           </header>

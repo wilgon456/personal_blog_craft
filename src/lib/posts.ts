@@ -112,6 +112,42 @@ export function getArchiveGroups(posts: BlogPost[]) {
     }))
 }
 
+export function getArchiveMonthGroups(posts: BlogPost[]) {
+  const groups = new Map<string, BlogPost[]>()
+
+  for (const post of posts) {
+    const publishedDate = new Date(post.publishedAt)
+
+    if (Number.isNaN(publishedDate.valueOf())) {
+      continue
+    }
+
+    const year = publishedDate.getFullYear()
+    const month = publishedDate.getMonth() + 1
+    const key = `${year}-${String(month).padStart(2, "0")}`
+    const collection = groups.get(key) ?? []
+    collection.push(post)
+    groups.set(key, collection)
+  }
+
+  return [...groups.entries()]
+    .sort((left, right) => right[0].localeCompare(left[0]))
+    .map(([key, groupedPosts]) => {
+      const [yearText, monthText] = key.split("-")
+      const year = Number(yearText)
+      const month = Number(monthText)
+
+      return {
+        id: `archive-${yearText}-${monthText}`,
+        key,
+        year,
+        month,
+        label: `${yearText}.${monthText}`,
+        posts: groupedPosts,
+      }
+    })
+}
+
 export function getAdjacentPosts(posts: BlogPost[], slug: string) {
   const index = posts.findIndex((post) => post.slug === slug)
 

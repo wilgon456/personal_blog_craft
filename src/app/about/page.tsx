@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { markdownToHtml } from "@/lib/markdown"
-import { getPageBySlug } from "@/lib/pages"
+import { getAboutPage } from "@/lib/pages"
 import { getSiteProfile } from "@/lib/profile"
 import {
   absoluteUrl,
@@ -12,7 +12,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 export async function generateMetadata() {
-  const page = await getPageBySlug("about")
+  const page = await getAboutPage()
 
   if (!page) {
     return {
@@ -43,7 +43,7 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const page = await getPageBySlug("about")
+  const page = await getAboutPage()
   const profile = await getSiteProfile()
 
   if (!page) {

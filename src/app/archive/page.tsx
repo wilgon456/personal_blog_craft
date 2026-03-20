@@ -1,5 +1,5 @@
 import { EmptyState } from "@/components/empty-state"
-import { getArchiveGroups } from "@/lib/posts"
+import { getArchiveMonthGroups } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteDescription } from "@/lib/site"
 import Link from "next/link"
@@ -14,14 +14,14 @@ export const metadata = {
 
 export default async function ArchivePage() {
   const posts = await getPublishedPosts()
-  const archive = getArchiveGroups(posts)
+  const archive = getArchiveMonthGroups(posts)
 
   return (
     <section className="page-grid">
       <div className="page-main">
         <div className="section-heading">
           <h1>Archive</h1>
-          <p>{posts.length} posts arranged by year.</p>
+          <p>{posts.length} posts arranged by month.</p>
         </div>
 
         {!archive.length ? (
@@ -31,9 +31,9 @@ export default async function ArchivePage() {
           />
         ) : (
           archive.map((group) => (
-            <section className="archive-year" key={group.year}>
+            <section className="archive-year" id={group.id} key={group.key}>
               <div className="section-heading">
-                <h2>{group.year}</h2>
+                <h2>{group.label}</h2>
                 <p>{group.posts.length} entries</p>
               </div>
 
@@ -57,10 +57,15 @@ export default async function ArchivePage() {
           <div className="section-heading">
             <h2>Browse by time</h2>
           </div>
-          <p className="profile-card__bio">
-            The archive is useful when you want to follow the writing history
-            rather than filter by tags.
-          </p>
+          {!!archive.length && (
+            <div className="archive-time-grid" aria-label="Archive month shortcuts">
+              {archive.map((group) => (
+                <a className="archive-time-link" href={`#${group.id}`} key={group.key}>
+                  {group.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     </section>
