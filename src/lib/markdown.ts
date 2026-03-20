@@ -29,6 +29,7 @@ const allowedTagSet = new Set([
 
 const allowedClassMap = {
   div: [
+    "craft-callout",
     "craft-block-group",
     /^craft-block-group--depth-\d+$/,
   ],

@@ -1131,9 +1131,11 @@ img {
 }
 
 .article-body .craft-block-group {
-  margin-left: 0;
-  padding-left: 1rem;
-  border-left: 1px solid var(--ghost-line);
+  margin-left: 0.65rem;
+  padding-left: 0;
+  border-left: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .article-body .craft-block-group > * + * {
@@ -1141,19 +1143,48 @@ img {
 }
 
 .article-body .craft-block-group--depth-2 {
-  margin-left: 0.35rem;
+  margin-left: 1rem;
 }
 
 .article-body .craft-block-group--depth-3 {
-  margin-left: 0.7rem;
+  margin-left: 1.35rem;
 }
 
 .article-body .craft-block-group--depth-4 {
-  margin-left: 1.05rem;
+  margin-left: 1.7rem;
 }
 
 .article-body .craft-block-group--depth-5 {
-  margin-left: 1.4rem;
+  margin-left: 2.05rem;
+}
+
+.article-body .craft-callout {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--surface-container-high), var(--surface-container));
+  box-shadow: inset 0 0 0 1px var(--ghost-line);
+}
+
+.article-body .craft-callout > * {
+  margin-top: 0;
+}
+
+.article-body .craft-callout p,
+.article-body .craft-callout li {
+  color: var(--muted);
+}
+
+.article-body .craft-callout ul,
+.article-body .craft-callout ol {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.article-body .craft-callout p:first-child {
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .article-body h1,

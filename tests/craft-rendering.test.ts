@@ -83,6 +83,40 @@ describe("Craft rendering guardrails", () => {
     expect(html).not.toContain("<code>")
   })
 
+  it("renders consecutive callout blocks as one callout container", () => {
+    const blocks: TestBlock[] = [
+      {
+        id: "callout-title",
+        type: "text",
+        decorations: ["callout"],
+        markdown: "<callout>Callout title</callout>",
+      },
+      {
+        id: "callout-bullet-1",
+        type: "text",
+        decorations: ["callout"],
+        listStyle: "bullet",
+        markdown: "<callout>- First bullet</callout>",
+      },
+      {
+        id: "callout-bullet-2",
+        type: "text",
+        decorations: ["callout"],
+        listStyle: "bullet",
+        markdown: "<callout>- Second bullet</callout>",
+      },
+    ]
+
+    const html = renderCraftBlocksToHtml(blocks)
+
+    expect(html).toContain('class="craft-callout"')
+    expect(html).toContain("<p>Callout title</p>")
+    expect(html).toContain("<ul>")
+    expect(html).toContain("<li>First bullet</li>")
+    expect(html).toContain("<li>Second bullet</li>")
+    expect(html).not.toContain("<blockquote>")
+  })
+
   it("preserves indentation groups in rendered html", () => {
     const blocks: TestBlock[] = [
       {

@@ -99,8 +99,8 @@ function assertKnownProblemPostLooksHealthy() {
 
   const html = readFile(knownProblemPath)
 
-  if (!html.includes("<blockquote>")) {
-    fail("The known problem post no longer renders its callout blockquote.")
+  if (!html.includes('class="craft-callout"')) {
+    fail("The known problem post no longer renders its callout container.")
   }
 
   if (!html.includes('<img src="https://r.craft.do/')) {

@@ -24,6 +24,7 @@ export type CraftBlock = {
   textStyle?: string
   listStyle?: string
   indentationLevel?: number
+  decorations?: string[]
   taskInfo?: {
     isCompleted?: boolean
   }
@@ -175,6 +176,11 @@ function getHeadingContent(markdown: string) {
   }
 }
 
+function stripCalloutTag(markdown: string) {
+  const matched = markdown.match(/^<callout>\s*([\s\S]*?)\s*<\/callout>$/i)
+  return matched ? matched[1].trim() : null
+}
+
 function trimCraftIndent(markdown: string, level: number) {
   const craftIndent = "  ".repeat(level)
 
@@ -185,13 +191,11 @@ function trimCraftIndent(markdown: string, level: number) {
 }
 
 function unwrapCraftCallout(markdown: string, block: CraftBlock) {
-  const matched = markdown.match(/^<callout>\s*([\s\S]*?)\s*<\/callout>$/i)
+  const content = stripCalloutTag(markdown)
 
-  if (!matched) {
+  if (!content) {
     return markdown
   }
-
-  const content = matched[1].trim()
 
   if (block.listStyle && block.listStyle !== "none") {
     return content
@@ -247,9 +251,18 @@ function applyListIndent(markdown: string, level: number) {
     .join("\n")
 }
 
-function normalizeBlockMarkdown(markdown: string, block: CraftBlock) {
+function normalizeBlockMarkdown(
+  markdown: string,
+  block: CraftBlock,
+  options?: {
+    preserveCallout?: boolean
+  },
+) {
   const trimmed = trimCraftIndent(markdown, block.indentationLevel ?? 0)
-  const normalizedStructuralMarkdown = unwrapCraftCallout(trimmed, block)
+  const normalizedStructuralMarkdown =
+    options?.preserveCallout && stripCalloutTag(trimmed)
+      ? stripCalloutTag(trimmed) || trimmed
+      : unwrapCraftCallout(trimmed, block)
   const withoutListMarker = stripListMarker(normalizedStructuralMarkdown, block.listStyle)
 
   if (block.listStyle === "numbered" && isHeadingStyle(block.textStyle)) {
@@ -375,11 +388,14 @@ function syncIndentGroups(currentDepth: number, targetDepth: number) {
 function getRenderableMarkdown(
   block: CraftBlock,
   numberedHeadingIndexes: Map<number, number>,
+  options?: {
+    preserveCallout?: boolean
+  },
 ) {
   const markdown = block.markdown?.replace(/\s+$/, "")
 
   if (markdown?.trim()) {
-    const normalized = normalizeBlockMarkdown(markdown, block)
+    const normalized = normalizeBlockMarkdown(markdown, block, options)
 
     if (block.listStyle === "numbered" && isHeadingStyle(block.textStyle)) {
       return renderNumberedHeading(normalized, block, numberedHeadingIndexes)
@@ -393,12 +409,12 @@ function getRenderableMarkdown(
       block.altText?.trim() || block.fileName?.trim() || "Image",
     )
 
-    return normalizeBlockMarkdown(`![${altText}](${block.url})`, block)
+    return normalizeBlockMarkdown(`![${altText}](${block.url})`, block, options)
   }
 
   if (block.type === "file" && block.url) {
     const fileName = escapeMarkdownText(block.fileName?.trim() || "Attachment")
-    return normalizeBlockMarkdown(`[${fileName}](${block.url})`, block)
+    return normalizeBlockMarkdown(`[${fileName}](${block.url})`, block, options)
   }
 
   return ""
@@ -420,6 +436,68 @@ export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   return parts.join("\n\n")
 }
 
+function isCalloutBlock(block: CraftBlock) {
+  return Boolean(
+    block.decorations?.includes("callout") ||
+      (block.markdown && stripCalloutTag(block.markdown)),
+  )
+}
+
+function renderCalloutGroup(
+  blocks: CraftBlock[],
+  startIndex: number,
+  numberedHeadingIndexes: Map<number, number>,
+) {
+  const innerHtml: string[] = []
+  let index = startIndex
+
+  while (index < blocks.length && isCalloutBlock(blocks[index])) {
+    const block = blocks[index]
+
+    if (isRenderableListBlock(block)) {
+      const markdownParts = [
+        getRenderableMarkdown(block, numberedHeadingIndexes, {
+          preserveCallout: true,
+        }),
+      ]
+
+      while (
+        index + 1 < blocks.length &&
+        isCalloutBlock(blocks[index + 1]) &&
+        isRenderableListBlock(blocks[index + 1])
+      ) {
+        index += 1
+        markdownParts.push(
+          getRenderableMarkdown(blocks[index], numberedHeadingIndexes, {
+            preserveCallout: true,
+          }),
+        )
+      }
+
+      const listMarkdown = markdownParts.filter(Boolean).join("\n")
+
+      if (listMarkdown) {
+        innerHtml.push(renderMarkdownFragment(listMarkdown))
+      }
+    } else {
+      const markdown = getRenderableMarkdown(block, numberedHeadingIndexes, {
+        preserveCallout: true,
+      })
+
+      if (markdown) {
+        innerHtml.push(renderMarkdownFragment(markdown))
+      }
+    }
+
+    index += 1
+  }
+
+  return {
+    html: `<div class="craft-callout">${innerHtml.join("")}</div>`,
+    nextIndex: index - 1,
+  }
+}
+
 export function renderCraftBlocksToHtml(blocks: CraftBlock[] = []) {
   const linearBlocks = linearizeCraftBlocks(blocks)
   const htmlParts: string[] = []
@@ -428,6 +506,18 @@ export function renderCraftBlocksToHtml(blocks: CraftBlock[] = []) {
 
   for (let index = 0; index < linearBlocks.length; index += 1) {
     const block = linearBlocks[index]
+
+    if (isCalloutBlock(block)) {
+      const renderedCallout = renderCalloutGroup(
+        linearBlocks,
+        index,
+        numberedHeadingIndexes,
+      )
+      htmlParts.push(renderedCallout.html)
+      index = renderedCallout.nextIndex
+      continue
+    }
+
     const targetDepth = block.indentationLevel ?? 0
     const syncedGroup = syncIndentGroups(currentDepth, targetDepth)
 
