@@ -64,7 +64,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={pretendard.variable}>
+      <body className={`${pretendard.variable} ${pretendard.className}`}>
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {

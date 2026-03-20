@@ -85,6 +85,7 @@ html {
   scroll-behavior: smooth;
   background: var(--background);
   color-scheme: dark;
+  font-family: var(--font-body);
 }
 
 html[data-theme="light"] {
@@ -119,8 +120,10 @@ body::before {
 body,
 input,
 textarea,
-button {
+button,
+select {
   overflow-wrap: anywhere;
+  font-family: var(--font-body);
 }
 
 a {
@@ -1129,7 +1132,10 @@ img {
 
 .article-body h1,
 .article-body h2,
-.article-body h3 {
+.article-body h3,
+.article-body h4,
+.article-body h5,
+.article-body h6 {
   margin-top: 2rem;
   font-family: var(--font-display);
   line-height: 1.2;

@@ -1,0 +1,37 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      CRAFT_API_URL: ${{ secrets.CRAFT_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit rendering guardrails
+        run: npm run test:unit
+
+      - name: Build rendering smoke checks
+        if: ${{ env.CRAFT_API_URL != '' }}
+        run: npm run test:rendering

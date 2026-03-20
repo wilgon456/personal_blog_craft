@@ -149,6 +149,31 @@ function escapeMarkdownText(value: string) {
   return value.replace(/[[\]\\]/g, "\\$&")
 }
 
+function isHeadingStyle(textStyle?: string) {
+  return /^h[1-6]$/i.test(textStyle || "")
+}
+
+function getHeadingMarker(textStyle?: string) {
+  if (!isHeadingStyle(textStyle)) {
+    return ""
+  }
+
+  return "#".repeat(Number((textStyle || "").slice(1)))
+}
+
+function getHeadingContent(markdown: string) {
+  const matched = markdown.match(/^(#{1,6})\s+(.+)$/)
+
+  if (!matched) {
+    return null
+  }
+
+  return {
+    marker: matched[1],
+    content: matched[2].trim(),
+  }
+}
+
 function trimCraftIndent(markdown: string, level: number) {
   const craftIndent = "  ".repeat(level)
 
@@ -208,7 +233,7 @@ function applyListPrefix(markdown: string, block: CraftBlock) {
   ].join("\n")
 }
 
-function applyMarkdownIndent(markdown: string, level: number) {
+function applyListIndent(markdown: string, level: number) {
   const indent = "    ".repeat(level)
 
   if (!indent) {
@@ -225,19 +250,72 @@ function normalizeBlockMarkdown(markdown: string, block: CraftBlock) {
   const trimmed = trimCraftIndent(markdown, block.indentationLevel ?? 0)
   const normalizedStructuralMarkdown = unwrapCraftCallout(trimmed, block)
   const withoutListMarker = stripListMarker(normalizedStructuralMarkdown, block.listStyle)
-  const withListPrefix =
-    block.listStyle && block.listStyle !== "none"
-      ? applyListPrefix(withoutListMarker, block)
-      : withoutListMarker
 
-  return applyMarkdownIndent(withListPrefix, block.indentationLevel ?? 0)
+  if (block.listStyle === "numbered" && isHeadingStyle(block.textStyle)) {
+    return withoutListMarker
+  }
+
+  if (block.listStyle && block.listStyle !== "none") {
+    return applyListIndent(
+      applyListPrefix(withoutListMarker, block),
+      block.indentationLevel ?? 0,
+    )
+  }
+
+  return withoutListMarker
 }
 
-function blockToMarkdown(block: CraftBlock) {
+function nextNumberedHeadingIndex(
+  numberedHeadingIndexes: Map<number, number>,
+  level: number,
+) {
+  for (const key of [...numberedHeadingIndexes.keys()]) {
+    if (key > level) {
+      numberedHeadingIndexes.delete(key)
+    }
+  }
+
+  const nextIndex = (numberedHeadingIndexes.get(level) ?? 0) + 1
+  numberedHeadingIndexes.set(level, nextIndex)
+  return nextIndex
+}
+
+function renderNumberedHeading(
+  markdown: string,
+  block: CraftBlock,
+  numberedHeadingIndexes: Map<number, number>,
+) {
+  const heading = getHeadingContent(markdown)
+  const headingMarker = heading?.marker || getHeadingMarker(block.textStyle)
+  const headingContent = heading?.content || markdown.trim()
+
+  if (!headingMarker || !headingContent) {
+    return markdown
+  }
+
+  const indentationLevel = block.indentationLevel ?? 0
+  const numberedIndex = nextNumberedHeadingIndex(
+    numberedHeadingIndexes,
+    indentationLevel,
+  )
+
+  return `${headingMarker} ${numberedIndex}. ${headingContent}`
+}
+
+function blockToMarkdown(
+  block: CraftBlock,
+  numberedHeadingIndexes: Map<number, number>,
+) {
   const markdown = block.markdown?.replace(/\s+$/, "")
 
   if (markdown?.trim()) {
-    return normalizeBlockMarkdown(markdown, block)
+    const normalized = normalizeBlockMarkdown(markdown, block)
+
+    if (block.listStyle === "numbered" && isHeadingStyle(block.textStyle)) {
+      return renderNumberedHeading(normalized, block, numberedHeadingIndexes)
+    }
+
+    return normalized
   }
 
   if (block.type === "image" && block.url) {
@@ -258,9 +336,10 @@ function blockToMarkdown(block: CraftBlock) {
 
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   const parts: string[] = []
+  const numberedHeadingIndexes = new Map<number, number>()
 
   for (const block of blocks) {
-    const current = blockToMarkdown(block)
+    const current = blockToMarkdown(block, numberedHeadingIndexes)
     const children = block.content ? flattenCraftBlocks(block.content) : ""
 
     if (current || children) {

@@ -8,7 +8,11 @@
     "build": "npm run refresh:craft && next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:rendering",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:rendering": "npm run build && node scripts/verify-rendering.mjs"
   },
   "dependencies": {
     "marked": "^16.3.0",
@@ -26,6 +30,7 @@
     "@types/sanitize-html": "^2.16.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }
