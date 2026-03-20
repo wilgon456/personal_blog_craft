@@ -5,6 +5,7 @@ import {
   getAdjacentPosts,
 } from "@/lib/posts"
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts-data"
+import { stringifyForInlineScript } from "@/lib/safe-json"
 import { absoluteUrl, siteAuthorName, siteAuthorUrl, siteName } from "@/lib/site"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -99,7 +100,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <div className="page-main">
         <script
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(articleJsonLd),
+            __html: stringifyForInlineScript(articleJsonLd),
           }}
           type="application/ld+json"
         />

@@ -4,14 +4,28 @@ import Link from "next/link"
 import { ContactIcon } from "@/components/contact-icon"
 import { getContactLinks } from "@/lib/contacts"
 import { getSiteProfile } from "@/lib/profile"
+import { notFound } from "next/navigation"
 
-export const metadata: Metadata = {
-  title: "Admin",
-  description: "Profile admin guide for TUCHIZ-LOG",
-  robots: {
-    index: false,
-    follow: false,
-  },
+const adminRouteEnabled = process.env.ENABLE_ADMIN_ROUTE === "true"
+
+export function generateMetadata(): Metadata {
+  if (!adminRouteEnabled) {
+    return {
+      robots: {
+        index: false,
+        follow: false,
+      },
+    }
+  }
+
+  return {
+    title: "Admin",
+    description: "Profile admin guide for TUCHIZ-LOG",
+    robots: {
+      index: false,
+      follow: false,
+    },
+  }
 }
 
 const profileFields = ["Display Name", "Role", "Bio", "Profile Image"]
@@ -19,6 +33,10 @@ const contactFields = ["Label", "Icon", "Url", "Enabled"]
 const iconOptions = ["github", "instagram", "linkedin", "email", "link"]
 
 export default async function AdminPage() {
+  if (!adminRouteEnabled) {
+    notFound()
+  }
+
   const profile = await getSiteProfile()
   const contacts = await getContactLinks()
 

@@ -4,6 +4,7 @@ import { HomeFeed } from "@/components/home-feed"
 import { getContactLinks } from "@/lib/contacts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { getSiteProfile } from "@/lib/profile"
+import { stringifyForInlineScript } from "@/lib/safe-json"
 import {
   absoluteUrl,
   siteDescription,
@@ -43,7 +44,7 @@ export default async function HomePage() {
     <section className="home-shell">
       <script
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([websiteJsonLd, personJsonLdData]),
+          __html: stringifyForInlineScript([websiteJsonLd, personJsonLdData]),
         }}
         type="application/ld+json"
       />

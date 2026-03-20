@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link"
 import { EmptyState } from "@/components/empty-state"
 import { getArchiveMonthGroups } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
@@ -66,6 +67,9 @@ export default async function ArchivePage() {
               ))}
             </div>
           )}
+          <div className="action-row">
+            <BackLink />
+          </div>
         </div>
       </aside>
     </section>

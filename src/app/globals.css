@@ -1180,6 +1180,12 @@ img {
   color: var(--muted);
 }
 
+.article-body .craft-caption {
+  color: var(--soft);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .article-body mark.craft-highlight {
   padding: 0.05em 0.35em;
   border-radius: 0.4em;

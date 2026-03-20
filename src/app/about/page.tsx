@@ -2,6 +2,7 @@
 import { markdownToHtml } from "@/lib/markdown"
 import { getAboutPage } from "@/lib/pages"
 import { getSiteProfile } from "@/lib/profile"
+import { stringifyForInlineScript } from "@/lib/safe-json"
 import {
   absoluteUrl,
   siteAuthorName,
@@ -69,7 +70,7 @@ export default async function AboutPage() {
     <section className="about-page" id="top">
       <script
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(personJsonLd),
+          __html: stringifyForInlineScript(personJsonLd),
         }}
         type="application/ld+json"
       />

@@ -20,6 +20,12 @@ type CraftBlock = {
   id: string
   type?: string
   markdown?: string
+  textStyle?: string
+  listStyle?: string
+  indentationLevel?: number
+  taskInfo?: {
+    isCompleted?: boolean
+  }
   url?: string
   altText?: string
   fileName?: string
@@ -143,11 +149,95 @@ function escapeMarkdownText(value: string) {
   return value.replace(/[[\]\\]/g, "\\$&")
 }
 
+function trimCraftIndent(markdown: string, level: number) {
+  const craftIndent = "  ".repeat(level)
+
+  return markdown
+    .split("\n")
+    .map((line) => (line.startsWith(craftIndent) ? line.slice(craftIndent.length) : line))
+    .join("\n")
+}
+
+function unwrapCraftCallout(markdown: string, block: CraftBlock) {
+  const matched = markdown.match(/^<callout>\s*([\s\S]*?)\s*<\/callout>$/i)
+
+  if (!matched) {
+    return markdown
+  }
+
+  const content = matched[1].trim()
+
+  if (block.listStyle && block.listStyle !== "none") {
+    return content
+  }
+
+  return content
+    .split("\n")
+    .map((line) => (line.trim() ? `> ${line}` : ">"))
+    .join("\n")
+}
+
+function stripListMarker(markdown: string, listStyle?: string) {
+  const [firstLine = "", ...restLines] = markdown.split("\n")
+  let normalizedFirstLine = firstLine
+
+  if (listStyle === "numbered") {
+    normalizedFirstLine = firstLine.replace(/^\d+\.\s+/, "")
+  } else if (listStyle === "task") {
+    normalizedFirstLine = firstLine.replace(/^[-*+]\s+\[[ xX]\]\s+/, "")
+  } else if (listStyle === "bullet" || listStyle === "toggle") {
+    normalizedFirstLine = firstLine.replace(/^[-*+]\s+/, "")
+  }
+
+  return [normalizedFirstLine, ...restLines].join("\n")
+}
+
+function applyListPrefix(markdown: string, block: CraftBlock) {
+  const prefix =
+    block.listStyle === "numbered"
+      ? "1. "
+      : block.listStyle === "task"
+        ? `- [${block.taskInfo?.isCompleted ? "x" : " "}] `
+        : "- "
+  const [firstLine = "", ...restLines] = markdown.split("\n")
+  const continuationIndent = " ".repeat(prefix.length)
+
+  return [
+    `${prefix}${firstLine}`,
+    ...restLines.map((line) => (line.trim() ? `${continuationIndent}${line}` : "")),
+  ].join("\n")
+}
+
+function applyMarkdownIndent(markdown: string, level: number) {
+  const indent = "    ".repeat(level)
+
+  if (!indent) {
+    return markdown
+  }
+
+  return markdown
+    .split("\n")
+    .map((line) => (line.trim() ? `${indent}${line}` : ""))
+    .join("\n")
+}
+
+function normalizeBlockMarkdown(markdown: string, block: CraftBlock) {
+  const trimmed = trimCraftIndent(markdown, block.indentationLevel ?? 0)
+  const normalizedStructuralMarkdown = unwrapCraftCallout(trimmed, block)
+  const withoutListMarker = stripListMarker(normalizedStructuralMarkdown, block.listStyle)
+  const withListPrefix =
+    block.listStyle && block.listStyle !== "none"
+      ? applyListPrefix(withoutListMarker, block)
+      : withoutListMarker
+
+  return applyMarkdownIndent(withListPrefix, block.indentationLevel ?? 0)
+}
+
 function blockToMarkdown(block: CraftBlock) {
   const markdown = block.markdown?.replace(/\s+$/, "")
 
   if (markdown?.trim()) {
-    return markdown
+    return normalizeBlockMarkdown(markdown, block)
   }
 
   if (block.type === "image" && block.url) {
@@ -155,109 +245,26 @@ function blockToMarkdown(block: CraftBlock) {
       block.altText?.trim() || block.fileName?.trim() || "Image",
     )
 
-    return `![${altText}](${block.url})`
+    return normalizeBlockMarkdown(`![${altText}](${block.url})`, block)
   }
 
   if (block.type === "file" && block.url) {
     const fileName = escapeMarkdownText(block.fileName?.trim() || "Attachment")
-    return `[${fileName}](${block.url})`
+    return normalizeBlockMarkdown(`[${fileName}](${block.url})`, block)
   }
 
   return ""
 }
 
-function isListItemMarkdown(markdown: string) {
-  return /^\s*(?:[-*+]|\d+\.)\s+/.test(markdown)
-}
-
-function isOrderedListItemMarkdown(markdown: string) {
-  return /^\s*\d+\.\s+/.test(markdown)
-}
-
-function toNumberedHeading(markdown: string) {
-  const matched = markdown.match(/^\s*(\d+)\.\s+(#{1,6})\s+(.+)$/)
-
-  if (!matched) {
-    return null
-  }
-
-  const [, order, headingLevel, headingText] = matched
-  return `${headingLevel} ${order}. ${headingText}`
-}
-
-function indentMarkdown(markdown: string, spaces = 4) {
-  const indent = " ".repeat(spaces)
-  return markdown
-    .split("\n")
-    .map((line) => (line.trim() ? `${indent}${line}` : ""))
-    .join("\n")
-}
-
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   const parts: string[] = []
 
-  for (let index = 0; index < blocks.length; index += 1) {
-    const block = blocks[index]
+  for (const block of blocks) {
     const current = blockToMarkdown(block)
     const children = block.content ? flattenCraftBlocks(block.content) : ""
 
-    // Craft 문서에서 번호 섹션의 본문이 같은 레벨 형제 블록으로 내려오는 경우를 흡수한다.
-    if (current && isOrderedListItemMarkdown(current)) {
-      const sectionChildren: string[] = []
-
-      if (children) {
-        sectionChildren.push(children)
-      }
-
-      let cursor = index + 1
-      while (cursor < blocks.length) {
-        const sibling = blocks[cursor]
-        const siblingMarkdown = blockToMarkdown(sibling)
-
-        if (siblingMarkdown && isOrderedListItemMarkdown(siblingMarkdown)) {
-          break
-        }
-
-        const siblingChildren = sibling.content ? flattenCraftBlocks(sibling.content) : ""
-
-        if (siblingMarkdown && siblingChildren) {
-          sectionChildren.push(`${siblingMarkdown}\n\n${siblingChildren}`)
-        } else if (siblingMarkdown || siblingChildren) {
-          sectionChildren.push(siblingMarkdown || siblingChildren)
-        }
-
-        cursor += 1
-      }
-
-      const numberedHeading = toNumberedHeading(current)
-
-      if (numberedHeading) {
-        if (sectionChildren.length) {
-          parts.push(`${numberedHeading}\n\n${sectionChildren.join("\n\n")}`)
-        } else {
-          parts.push(numberedHeading)
-        }
-      } else if (sectionChildren.length) {
-        parts.push(`${current}\n${indentMarkdown(sectionChildren.join("\n\n"))}`)
-      } else {
-        parts.push(current)
-      }
-
-      index = cursor - 1
-      continue
-    }
-
-    if (current && children) {
-      if (isListItemMarkdown(current)) {
-        parts.push(`${current}\n${indentMarkdown(children)}`)
-      } else {
-        parts.push(`${current}\n\n${children}`)
-      }
-      continue
-    }
-
     if (current || children) {
-      parts.push(current || children)
+      parts.push(current && children ? `${current}\n\n${children}` : current || children)
     }
   }
 

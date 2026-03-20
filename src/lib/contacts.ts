@@ -40,6 +40,15 @@ function hasProtocol(value: string) {
   return /^[a-z][a-z0-9+.-]*:/i.test(value)
 }
 
+function isAllowedAbsoluteUrl(value: string) {
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+  } catch {
+    return false
+  }
+}
+
 function normalizeContactUrl(url: string, icon: ContactIconKind) {
   const normalized = url.trim()
 
@@ -55,11 +64,20 @@ function normalizeContactUrl(url: string, icon: ContactIconKind) {
     return `mailto:${normalized}`
   }
 
-  if (hasProtocol(normalized) || normalized.startsWith("/") || normalized.startsWith("#")) {
+  if (normalized.startsWith("/") && !normalized.startsWith("//")) {
     return normalized
   }
 
-  return `https://${normalized}`
+  if (normalized.startsWith("#")) {
+    return normalized
+  }
+
+  if (hasProtocol(normalized)) {
+    return isAllowedAbsoluteUrl(normalized) ? normalized : ""
+  }
+
+  const withHttps = `https://${normalized}`
+  return isAllowedAbsoluteUrl(withHttps) ? withHttps : ""
 }
 
 function getDefaultContacts(): ContactLink[] {

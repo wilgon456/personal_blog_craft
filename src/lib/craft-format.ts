@@ -1,5 +1,6 @@
 const highlightTagPattern =
   /<highlight(?:\s+color=["']?([^"'>\s]+)["']?)?\s*>([\s\S]*?)<\/highlight>/gi
+const captionTagPattern = /<caption>\s*([\s\S]*?)\s*<\/caption>/gi
 
 function sanitizeClassToken(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9-]/g, "")
@@ -10,14 +11,19 @@ export function normalizeCraftMarkdown(markdown: string) {
     return ""
   }
 
-  return markdown.replace(highlightTagPattern, (_match, color: string, content: string) => {
-    const token = sanitizeClassToken(color || "")
-    const className = token
-      ? `craft-highlight craft-highlight--${token}`
-      : "craft-highlight"
+  return markdown
+    .replace(highlightTagPattern, (_match, color: string, content: string) => {
+      const token = sanitizeClassToken(color || "")
+      const className = token
+        ? `craft-highlight craft-highlight--${token}`
+        : "craft-highlight"
 
-    return `<mark class="${className}">${content.trim()}</mark>`
-  })
+      return `<mark class="${className}">${content.trim()}</mark>`
+    })
+    .replace(
+      captionTagPattern,
+      (_match, content: string) => `<p class="craft-caption">${content.trim()}</p>`,
+    )
 }
 
 export function stripHtmlTags(text: string) {
