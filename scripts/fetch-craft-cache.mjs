@@ -28,38 +28,52 @@ async function fetchJson(target) {
 
 async function main() {
   const trimmedApiUrl = craftApiUrl.replace(/\/+$/, "")
-  const collectionsResponse = await fetchJson(`${trimmedApiUrl}/collections`)
-  const collections = collectionsResponse.items ?? []
-  const collectionItems = {}
-
-  for (const collection of collections) {
-    const itemsResponse = await fetchJson(
-      `${trimmedApiUrl}/collections/${collection.id}/items?maxDepth=3`,
-    )
-    collectionItems[collection.name] = itemsResponse.items ?? []
-  }
-
   const cacheDir = path.join(rootDir, ".cache")
   const cachePath = path.join(cacheDir, "craft-data.json")
 
   await mkdir(cacheDir, { recursive: true })
-  await writeFile(
-    cachePath,
-    JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        collections,
-        collectionItems,
-      },
-      null,
-      2,
-    ),
-    "utf8",
-  )
 
-  console.log(
-    `Craft cache refreshed: ${collections.length} collections -> ${cachePath}`,
-  )
+  try {
+    const collectionsResponse = await fetchJson(`${trimmedApiUrl}/collections`)
+    const collections = collectionsResponse.items ?? []
+    const collectionItems = {}
+
+    for (const collection of collections) {
+      const itemsResponse = await fetchJson(
+        `${trimmedApiUrl}/collections/${collection.id}/items?maxDepth=3`,
+      )
+      collectionItems[collection.name] = itemsResponse.items ?? []
+    }
+
+    await writeFile(
+      cachePath,
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          collections,
+          collectionItems,
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    )
+
+    console.log(
+      `Craft cache refreshed: ${collections.length} collections -> ${cachePath}`,
+    )
+  } catch (error) {
+    try {
+      await access(cachePath)
+      const message = error instanceof Error ? error.message : String(error)
+      console.warn(
+        `Craft cache refresh failed, reusing existing snapshot at ${cachePath}: ${message}`,
+      )
+      return
+    } catch {
+      throw error
+    }
+  }
 }
 
 async function hydrateLocalEnv() {
