@@ -105,6 +105,7 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
       excerpt,
     heroImage: ensureString(properties.hero_image),
     contentMarkdown,
+    contentBlocks: item.content ?? [],
     readingMinutes: readingMinutesFromText(contentMarkdown || excerpt),
   }
 }

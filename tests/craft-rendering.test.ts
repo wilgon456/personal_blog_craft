@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { flattenCraftBlocks } from "@/lib/craft"
+import { flattenCraftBlocks, renderCraftBlocksToHtml } from "@/lib/craft"
 import { markdownToHtml } from "@/lib/markdown"
 
-type TestBlock = Parameters<typeof flattenCraftBlocks>[0][number]
+type RenderableBlocks = NonNullable<Parameters<typeof flattenCraftBlocks>[0]>
+type TestBlock = RenderableBlocks[number]
 
 describe("Craft rendering guardrails", () => {
   it("renders numbered heading blocks as sequential headings", () => {
@@ -80,6 +81,39 @@ describe("Craft rendering guardrails", () => {
     expect(html).toContain("<p>Paragraph under the image.</p>")
     expect(html).not.toContain("<pre>")
     expect(html).not.toContain("<code>")
+  })
+
+  it("preserves indentation groups in rendered html", () => {
+    const blocks: TestBlock[] = [
+      {
+        id: "section-heading",
+        type: "text",
+        textStyle: "h2",
+        listStyle: "numbered",
+        markdown: "1. ## First section",
+      },
+      {
+        id: "nested-heading",
+        type: "text",
+        textStyle: "h3",
+        indentationLevel: 1,
+        markdown: "  ### Nested heading",
+      },
+      {
+        id: "nested-paragraph",
+        type: "text",
+        indentationLevel: 1,
+        markdown: "  Nested paragraph",
+      },
+    ]
+
+    const html = renderCraftBlocksToHtml(blocks)
+
+    expect(html).toContain('class="craft-block-group craft-block-group--depth-1"')
+    expect(html).toContain("<h2>1. First section</h2>")
+    expect(html).toContain("<h3>Nested heading</h3>")
+    expect(html).toContain("<p>Nested paragraph</p>")
+    expect(html).not.toContain("<pre>")
   })
 
   it("removes raw Craft tags from the final HTML", () => {

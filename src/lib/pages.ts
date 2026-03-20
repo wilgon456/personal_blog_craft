@@ -1,4 +1,8 @@
-import { flattenCraftBlocks, getCraftCollectionItems } from "@/lib/craft"
+import {
+  type CraftBlock,
+  flattenCraftBlocks,
+  getCraftCollectionItems,
+} from "@/lib/craft"
 import { summarizeMarkdown } from "@/lib/content-summary"
 import { slugify } from "transliteration"
 
@@ -12,6 +16,7 @@ type SitePage = {
   seoDescription: string
   heroImage: string
   contentMarkdown: string
+  contentBlocks: CraftBlock[]
 }
 
 function ensureString(value: unknown) {
@@ -62,6 +67,7 @@ function normalizePage(
     seoDescription,
     heroImage: ensureString(properties.hero_image),
     contentMarkdown,
+    contentBlocks: item.content ?? [],
   }
 }
 

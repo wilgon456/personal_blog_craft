@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { markdownToHtml } from "@/lib/markdown"
+import { renderCraftBlocksToHtml } from "@/lib/craft"
 import { getAboutPage } from "@/lib/pages"
 import { getSiteProfile } from "@/lib/profile"
 import { stringifyForInlineScript } from "@/lib/safe-json"
@@ -51,7 +51,7 @@ export default async function AboutPage() {
     notFound()
   }
 
-  const html = markdownToHtml(page.contentMarkdown)
+  const html = renderCraftBlocksToHtml(page.contentBlocks)
   const updatedLabel = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",

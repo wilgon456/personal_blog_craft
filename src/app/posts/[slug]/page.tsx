@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { PostCard } from "@/components/post-card"
-import { markdownToHtml } from "@/lib/markdown"
+import { renderCraftBlocksToHtml } from "@/lib/craft"
 import {
   getAdjacentPosts,
 } from "@/lib/posts"
@@ -66,7 +66,7 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound()
   }
 
-  const html = markdownToHtml(post.contentMarkdown)
+  const html = renderCraftBlocksToHtml(post.contentBlocks)
   const { previousPost, nextPost } = getAdjacentPosts(posts, post.slug)
   const articleJsonLd = {
     "@context": "https://schema.org",

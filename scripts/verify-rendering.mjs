@@ -112,6 +112,20 @@ function assertKnownProblemPostLooksHealthy() {
   }
 }
 
+function assertOutlineGroupingLooksHealthy() {
+  const outlinePostPath = path.join(postsDir, "review-chat_gpt", "index.html")
+
+  if (!fs.existsSync(outlinePostPath)) {
+    return
+  }
+
+  const html = readFile(outlinePostPath)
+
+  if (!html.includes("craft-block-group craft-block-group--depth-1")) {
+    fail("The outline-style post no longer preserves depth-1 block grouping.")
+  }
+}
+
 function main() {
   const postHtmlPaths = getPostHtmlPaths()
 
@@ -122,6 +136,7 @@ function main() {
   assertPretendardIsLoaded()
   assertNumberedHeadingsExist(postHtmlPaths)
   assertKnownProblemPostLooksHealthy()
+  assertOutlineGroupingLooksHealthy()
 
   for (const filePath of postHtmlPaths) {
     const html = readFile(filePath)

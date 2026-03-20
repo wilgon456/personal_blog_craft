@@ -9,6 +9,7 @@ marked.setOptions({
 
 const allowedTagSet = new Set([
   ...sanitizeHtml.defaults.allowedTags,
+  "div",
   "img",
   "h1",
   "h2",
@@ -27,6 +28,10 @@ const allowedTagSet = new Set([
 ])
 
 const allowedClassMap = {
+  div: [
+    "craft-block-group",
+    /^craft-block-group--depth-\d+$/,
+  ],
   mark: [
     "craft-highlight",
     /^craft-highlight--[a-z0-9-]+$/,
@@ -34,13 +39,16 @@ const allowedClassMap = {
   p: ["craft-caption"],
 }
 
-export function markdownToHtml(markdown: string) {
-  const renderedHtml = marked.parse(normalizeCraftMarkdown(markdown || "")) as string
+export function renderMarkdownFragment(markdown: string) {
+  return marked.parse(normalizeCraftMarkdown(markdown || "")) as string
+}
 
-  return sanitizeHtml(renderedHtml, {
+export function sanitizeRenderedHtml(html: string) {
+  return sanitizeHtml(html, {
     allowedTags: [...allowedTagSet],
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
+      div: ["class"],
       img: ["src", "alt", "title"],
       mark: ["class"],
       p: ["class"],
@@ -52,4 +60,8 @@ export function markdownToHtml(markdown: string) {
     allowedSchemesAppliedToAttributes: ["href", "src"],
     allowProtocolRelative: false,
   })
+}
+
+export function markdownToHtml(markdown: string) {
+  return sanitizeRenderedHtml(renderMarkdownFragment(markdown))
 }

@@ -1130,6 +1130,32 @@ img {
   margin-top: 1rem;
 }
 
+.article-body .craft-block-group {
+  margin-left: 0;
+  padding-left: 1rem;
+  border-left: 1px solid var(--ghost-line);
+}
+
+.article-body .craft-block-group > * + * {
+  margin-top: 1rem;
+}
+
+.article-body .craft-block-group--depth-2 {
+  margin-left: 0.35rem;
+}
+
+.article-body .craft-block-group--depth-3 {
+  margin-left: 0.7rem;
+}
+
+.article-body .craft-block-group--depth-4 {
+  margin-left: 1.05rem;
+}
+
+.article-body .craft-block-group--depth-5 {
+  margin-left: 1.4rem;
+}
+
 .article-body h1,
 .article-body h2,
 .article-body h3,

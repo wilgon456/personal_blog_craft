@@ -1,3 +1,5 @@
+import type { CraftBlock } from "@/lib/craft"
+
 export type BlogPost = {
   id: string
   title: string
@@ -16,5 +18,6 @@ export type BlogPost = {
   seoDescription: string
   heroImage: string
   contentMarkdown: string
+  contentBlocks: CraftBlock[]
   readingMinutes: number
 }

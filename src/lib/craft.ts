@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { notFound } from "next/navigation"
+import { renderMarkdownFragment, sanitizeRenderedHtml } from "@/lib/markdown"
 
 type CraftCollection = {
   id: string
@@ -16,7 +17,7 @@ type CraftCollectionItem = {
   content?: CraftBlock[]
 }
 
-type CraftBlock = {
+export type CraftBlock = {
   id: string
   type?: string
   markdown?: string
@@ -334,6 +335,75 @@ function blockToMarkdown(
   return ""
 }
 
+function isRenderableListBlock(block: CraftBlock) {
+  return Boolean(
+    block.listStyle &&
+      block.listStyle !== "none" &&
+      !(block.listStyle === "numbered" && isHeadingStyle(block.textStyle)),
+  )
+}
+
+function linearizeCraftBlocks(blocks: CraftBlock[] = []): CraftBlock[] {
+  return blocks.flatMap((block) => [
+    block,
+    ...linearizeCraftBlocks(block.content ?? []),
+  ])
+}
+
+function syncIndentGroups(currentDepth: number, targetDepth: number) {
+  const parts: string[] = []
+  const normalizedTargetDepth = Math.max(0, Math.min(targetDepth, 5))
+
+  if (normalizedTargetDepth > currentDepth) {
+    for (let depth = currentDepth + 1; depth <= normalizedTargetDepth; depth += 1) {
+      parts.push(
+        `<div class="craft-block-group craft-block-group--depth-${depth}">`,
+      )
+    }
+  } else if (normalizedTargetDepth < currentDepth) {
+    for (let depth = currentDepth; depth > normalizedTargetDepth; depth -= 1) {
+      parts.push("</div>")
+    }
+  }
+
+  return {
+    html: parts.join(""),
+    depth: normalizedTargetDepth,
+  }
+}
+
+function getRenderableMarkdown(
+  block: CraftBlock,
+  numberedHeadingIndexes: Map<number, number>,
+) {
+  const markdown = block.markdown?.replace(/\s+$/, "")
+
+  if (markdown?.trim()) {
+    const normalized = normalizeBlockMarkdown(markdown, block)
+
+    if (block.listStyle === "numbered" && isHeadingStyle(block.textStyle)) {
+      return renderNumberedHeading(normalized, block, numberedHeadingIndexes)
+    }
+
+    return normalized
+  }
+
+  if (block.type === "image" && block.url) {
+    const altText = escapeMarkdownText(
+      block.altText?.trim() || block.fileName?.trim() || "Image",
+    )
+
+    return normalizeBlockMarkdown(`![${altText}](${block.url})`, block)
+  }
+
+  if (block.type === "file" && block.url) {
+    const fileName = escapeMarkdownText(block.fileName?.trim() || "Attachment")
+    return normalizeBlockMarkdown(`[${fileName}](${block.url})`, block)
+  }
+
+  return ""
+}
+
 export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   const parts: string[] = []
   const numberedHeadingIndexes = new Map<number, number>()
@@ -348,4 +418,55 @@ export function flattenCraftBlocks(blocks: CraftBlock[] = []): string {
   }
 
   return parts.join("\n\n")
+}
+
+export function renderCraftBlocksToHtml(blocks: CraftBlock[] = []) {
+  const linearBlocks = linearizeCraftBlocks(blocks)
+  const htmlParts: string[] = []
+  const numberedHeadingIndexes = new Map<number, number>()
+  let currentDepth = 0
+
+  for (let index = 0; index < linearBlocks.length; index += 1) {
+    const block = linearBlocks[index]
+    const targetDepth = block.indentationLevel ?? 0
+    const syncedGroup = syncIndentGroups(currentDepth, targetDepth)
+
+    if (syncedGroup.html) {
+      htmlParts.push(syncedGroup.html)
+      currentDepth = syncedGroup.depth
+    }
+
+    if (isRenderableListBlock(block)) {
+      const markdownParts = [getRenderableMarkdown(block, numberedHeadingIndexes)]
+
+      while (index + 1 < linearBlocks.length && isRenderableListBlock(linearBlocks[index + 1])) {
+        index += 1
+        markdownParts.push(
+          getRenderableMarkdown(linearBlocks[index], numberedHeadingIndexes),
+        )
+      }
+
+      const listMarkdown = markdownParts.filter(Boolean).join("\n")
+
+      if (listMarkdown) {
+        htmlParts.push(renderMarkdownFragment(listMarkdown))
+      }
+
+      continue
+    }
+
+    const markdown = getRenderableMarkdown(block, numberedHeadingIndexes)
+
+    if (markdown) {
+      htmlParts.push(renderMarkdownFragment(markdown))
+    }
+  }
+
+  const closedGroups = syncIndentGroups(currentDepth, 0)
+
+  if (closedGroups.html) {
+    htmlParts.push(closedGroups.html)
+  }
+
+  return sanitizeRenderedHtml(htmlParts.join(""))
 }
