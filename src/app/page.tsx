@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import type { Metadata } from "next"
 import { ContactIcon } from "@/components/contact-icon"
 import { HomeFeed } from "@/components/home-feed"
 import { getContactLinks } from "@/lib/contacts"
@@ -26,6 +27,12 @@ const personJsonLd = {
   name: "",
   url: siteUrl,
   image: "",
+}
+
+export const metadata: Metadata = {
+  other: {
+    "naver-site-verification": "aa1113495e97be161452c2ef2d4435c5a3104a61",
+  },
 }
 
 export default async function HomePage() {
