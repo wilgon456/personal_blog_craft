@@ -4,7 +4,6 @@ import localFont from "next/font/local"
 import Link from "next/link"
 import { GoogleAnalytics } from "@/components/google-analytics"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { VisitorTracker } from "@/components/visitor-tracker"
 import "./globals.css"
 import { gaMeasurementId } from "@/lib/google-analytics"
 import {
@@ -69,7 +68,6 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${pretendard.variable} ${pretendard.className}`}>
         <GoogleAnalytics measurementId={gaMeasurementId} />
-        <VisitorTracker />
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {

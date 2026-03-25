@@ -1,89 +1,23 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import {
-  getCountapiUrl,
-  type VisitorApiResponse,
-  visitorCountEventName,
-} from "@/lib/visitor-api"
+/* eslint-disable @next/next/no-img-element */
 
 /**
- * countapi.xyz에서 누적 방문자 수를 가져와 화면에 표시합니다.
+ * hits.seeyoufarm.com 뱃지 방식으로 방문자 수를 표시합니다.
  *
- * 1. 컴포넌트 마운트 시 GET 요청으로 현재 카운트를 불러옵니다.
- * 2. VisitorTracker 컴포넌트가 방문 추적 후 발행하는 커스텀 이벤트를 수신해
- *    실시간으로 수치를 최신 값으로 갱신합니다.
+ * - img 태그 하나로 카운트 증가 + 뱃지 표시가 동시에 처리됩니다.
+ * - 외부 API 서버 상태에 무관하게 안정적으로 작동합니다.
+ * - 이전에 사용하던 countapi.xyz 서비스는 2023년 서비스 종료로 대체했습니다.
  */
-const numberFormatter = new Intl.NumberFormat("en-US")
+const HITS_BADGE_URL =
+  "https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Ftuchizblog.today&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=false"
 
 export function TodayVisitorCount() {
-  const [count, setCount] = useState<number | null>(null)
-  const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    function handleVisitorCountUpdate(event: Event) {
-      const customEvent = event as CustomEvent<VisitorApiResponse>
-      setCount(customEvent.detail.count)
-      setStatus("ready")
-    }
-
-    async function loadVisitorCount() {
-      try {
-        const response = await fetch(getCountapiUrl("read"), {
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-          },
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          throw new Error(`Failed to load visitor count: ${response.status}`)
-        }
-
-        const data = (await response.json()) as { value: number }
-        setCount(data.value)
-        setStatus("ready")
-      } catch {
-        if (controller.signal.aborted) {
-          return
-        }
-
-        setStatus("error")
-      }
-    }
-
-    window.addEventListener(visitorCountEventName, handleVisitorCountUpdate)
-    loadVisitorCount()
-
-    return () => {
-      controller.abort()
-      window.removeEventListener(visitorCountEventName, handleVisitorCountUpdate)
-    }
-  }, [])
-
-  const value =
-    status === "ready" && count !== null
-      ? numberFormatter.format(count)
-      : status === "error"
-        ? "--"
-        : "..."
-
-  const caption =
-    status === "ready"
-      ? "total visitors"
-      : status === "error"
-        ? "visitor data unavailable"
-        : "counting visitors"
-
   return (
     <div className="home-today-card">
-      <strong aria-live="polite" className="home-today-card__value">
-        {value}
-      </strong>
-      <p className="home-today-card__caption">{caption}</p>
+      <img
+        alt="방문자 수"
+        src={HITS_BADGE_URL}
+        style={{ height: "auto", maxWidth: "100%" }}
+      />
     </div>
   )
 }
