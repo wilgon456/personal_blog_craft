@@ -2,8 +2,11 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import localFont from "next/font/local"
 import Link from "next/link"
+import { GoogleAnalytics } from "@/components/google-analytics"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { VisitorTracker } from "@/components/visitor-tracker"
 import "./globals.css"
+import { gaMeasurementId } from "@/lib/google-analytics"
 import {
   absoluteUrl,
   siteBrandIcon,
@@ -12,6 +15,7 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/site"
+import { visitorApiEndpoint } from "@/lib/visitor-api"
 
 const pretendard = localFont({
   src: "../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
@@ -65,6 +69,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${pretendard.variable} ${pretendard.className}`}>
+        <GoogleAnalytics measurementId={gaMeasurementId} />
+        <VisitorTracker endpoint={visitorApiEndpoint} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {

@@ -9,7 +9,9 @@
     "CRAFT_ITEMS_MAX_DEPTH": "-1",
     "GITHUB_EVENT_TYPE": "craft_content_changed",
     "GITHUB_OWNER": "wilgon456",
-    "GITHUB_REPO": "personal_blog_craft"
+    "GITHUB_REPO": "personal_blog_craft",
+    "VISITOR_ALLOWED_ORIGINS": "https://tuchizblog.today,http://localhost:3000,http://127.0.0.1:3000",
+    "VISITOR_TIMEZONE": "Asia/Seoul"
   },
   "observability": {
     "enabled": true

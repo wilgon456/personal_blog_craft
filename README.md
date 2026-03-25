@@ -27,6 +27,8 @@ CRAFT_API_URL=https://connect.craft.do/links/your-link/api/v1
 SITE_URL=https://your-site.example
 BLOG_AUTHOR_NAME=your-name
 BLOG_AUTHOR_URL=https://your-profile.example
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_VISITOR_API_URL=/api/visits/today
 ```
 
 개발 서버:
@@ -108,3 +110,14 @@ guide/
 - [diy.md](./guide/diy.md)
 - [content-model.md](./guide/content-model.md)
 - [operations.md](./guide/operations.md)
+
+## Visitor Count
+
+- The homepage `TODAY` panel reads from `NEXT_PUBLIC_VISITOR_API_URL`.
+- Point it to `/api/visits/today` when the Cloudflare Worker is routed through the same domain.
+- The Worker stores daily unique visitor counts in KV and returns JSON for the homepage card.
+
+## Google Analytics
+
+- Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` to your GA4 measurement ID like `G-XXXXXXXXXX`.
+- The root layout loads `gtag.js` globally and also sends page views on App Router navigation.

@@ -9,6 +9,7 @@ This setup polls Craft, hashes the published `Posts` collection, and triggers Gi
 3. The Worker hashes the published items and compares the hash with the last value stored in Cloudflare KV.
 4. If the hash changed, the Worker calls GitHub `repository_dispatch`.
 5. The existing Pages workflow rebuilds and deploys the blog.
+6. The same Worker can also respond to `/api/visits/today` for daily visitor counts.
 
 ## Files
 
@@ -46,6 +47,10 @@ In the Worker dashboard or via Wrangler, set:
   - `personal_blog_craft`
 - `GITHUB_EVENT_TYPE`
   - `craft_content_changed`
+- `VISITOR_ALLOWED_ORIGINS`
+  - `https://tuchizblog.today,http://localhost:3000,http://127.0.0.1:3000`
+- `VISITOR_TIMEZONE`
+  - `Asia/Seoul`
 - `GITHUB_TOKEN`
   - store as a secret, not a plain variable
 
@@ -87,6 +92,12 @@ npm install
 npm run deploy
 ```
 
+If the site should show the `TODAY` visitor count card, also set:
+
+- `NEXT_PUBLIC_VISITOR_API_URL`
+  - `/api/visits/today` when the Worker is routed through the same domain
+  - or the full Worker URL if the API is hosted on a separate subdomain
+
 ## Local Test
 
 Run:
@@ -106,3 +117,4 @@ curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*"
 
 - The GitHub Pages workflow now relies on `push`, manual runs, and Cloudflare-triggered `repository_dispatch`.
 - This Worker compares only published collection items. Draft-only changes do not trigger deployment.
+- Visitor counting uses the same KV namespace and stores one daily unique visit per hashed IP and user agent pair.

@@ -1,10 +1,29 @@
 const CONTENT_HASH_KEY = "craft-posts-hash"
 const DEFAULT_COLLECTION_NAME = "Posts"
 const DEFAULT_EVENT_TYPE = "craft_content_changed"
+const DEFAULT_VISITOR_ALLOWED_ORIGINS = [
+  "http://127.0.0.1:3000",
+  "http://localhost:3000",
+  "https://tuchizblog.today",
+]
+const DEFAULT_VISITOR_TIMEZONE = "Asia/Seoul"
 const GITHUB_API_VERSION = "2026-03-10"
+const VISITOR_COUNT_KEY_PREFIX = "site-visitor-count"
+const VISITOR_COUNT_TTL_SECONDS = 60 * 60 * 24 * 14
+const VISITOR_ROUTE_PATH = "/api/visits/today"
+const VISITOR_SCOPE_PATH = "path"
+const VISITOR_SCOPE_SITE = "site"
+const VISITOR_SEEN_KEY_PREFIX = "site-visitor-seen"
+const VISITOR_SEEN_TTL_SECONDS = 60 * 60 * 48
 
 const worker = {
-  async fetch() {
+  async fetch(request, env) {
+    const url = new URL(request.url)
+
+    if (url.pathname === VISITOR_ROUTE_PATH) {
+      return handleVisitorRequest(request, env)
+    }
+
     return Response.json({
       ok: true,
       service: "craft-content-dispatch",
@@ -18,6 +37,96 @@ const worker = {
 }
 
 export default worker
+
+async function handleVisitorRequest(request, env) {
+  const origin = request.headers.get("Origin")
+  const corsHeaders = buildCorsHeaders(origin, env)
+
+  if (origin && !isAllowedOrigin(origin, env)) {
+    return jsonResponse(
+      {
+        error: "Origin not allowed",
+        ok: false,
+      },
+      403,
+      corsHeaders,
+    )
+  }
+
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      headers: corsHeaders,
+      status: 204,
+    })
+  }
+
+  if (request.method !== "GET") {
+    return jsonResponse(
+      {
+        error: "Method not allowed",
+        ok: false,
+      },
+      405,
+      corsHeaders,
+    )
+  }
+
+  try {
+    const url = new URL(request.url)
+    const mode = url.searchParams.get("mode") === "read" ? "read" : "track"
+    const scope = url.searchParams.get("scope") === VISITOR_SCOPE_PATH
+      ? VISITOR_SCOPE_PATH
+      : VISITOR_SCOPE_SITE
+    const path = normalizeVisitorPath(url.searchParams.get("path") || "/")
+    const dateKey = getDateKey(
+      Date.now(),
+      env.VISITOR_TIMEZONE || DEFAULT_VISITOR_TIMEZONE,
+    )
+    const scopeKey = scope === VISITOR_SCOPE_PATH ? `${scope}:${path}` : scope
+    const countKey = `${VISITOR_COUNT_KEY_PREFIX}:${dateKey}:${scopeKey}`
+    let count = toStoredCount(await env.CONTENT_STATE.get(countKey))
+    let counted = false
+
+    if (mode === "track") {
+      const visitorFingerprint = await createVisitorFingerprint(request)
+      const seenKey = `${VISITOR_SEEN_KEY_PREFIX}:${dateKey}:${scopeKey}:${visitorFingerprint}`
+      const alreadyCounted = await env.CONTENT_STATE.get(seenKey)
+
+      if (!alreadyCounted) {
+        counted = true
+        count += 1
+
+        await env.CONTENT_STATE.put(seenKey, "1", {
+          expirationTtl: VISITOR_SEEN_TTL_SECONDS,
+        })
+        await env.CONTENT_STATE.put(countKey, String(count), {
+          expirationTtl: VISITOR_COUNT_TTL_SECONDS,
+        })
+      }
+    }
+
+    return jsonResponse(
+      {
+        counted,
+        count,
+        dateKey,
+        ok: true,
+        scope,
+      },
+      200,
+      corsHeaders,
+    )
+  } catch (error) {
+    return jsonResponse(
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+        ok: false,
+      },
+      500,
+      corsHeaders,
+    )
+  }
+}
 
 async function runScheduledCheck(controller, env) {
   validateEnv(env)
@@ -187,4 +296,80 @@ async function createHash(value) {
 
 function trimTrailingSlash(value) {
   return value.replace(/\/+$/, "")
+}
+
+function buildCorsHeaders(origin, env) {
+  const headers = new Headers({
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Cache-Control": "no-store",
+    "Content-Type": "application/json; charset=utf-8",
+    Vary: "Origin",
+  })
+
+  if (origin && isAllowedOrigin(origin, env)) {
+    headers.set("Access-Control-Allow-Origin", origin)
+  }
+
+  return headers
+}
+
+async function createVisitorFingerprint(request) {
+  const ipAddress =
+    request.headers.get("CF-Connecting-IP") ||
+    request.headers.get("X-Forwarded-For") ||
+    "unknown"
+  const userAgent = request.headers.get("User-Agent") || "unknown"
+  const acceptLanguage = request.headers.get("Accept-Language") || "unknown"
+
+  return createHash(`${ipAddress}|${userAgent}|${acceptLanguage}`)
+}
+
+function getDateKey(timestamp, timeZone) {
+  return new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone,
+    year: "numeric",
+  }).format(timestamp)
+}
+
+function isAllowedOrigin(origin, env) {
+  if (!origin) {
+    return true
+  }
+
+  const allowedOrigins = (env.VISITOR_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+  const normalizedAllowedOrigins =
+    allowedOrigins.length > 0 ? allowedOrigins : DEFAULT_VISITOR_ALLOWED_ORIGINS
+
+  return normalizedAllowedOrigins.includes(origin)
+}
+
+function jsonResponse(payload, status, headers) {
+  return new Response(JSON.stringify(payload), {
+    headers,
+    status,
+  })
+}
+
+function normalizeVisitorPath(value) {
+  if (!value || value === "/") {
+    return "/"
+  }
+
+  return `/${value.replace(/^\/+/, "").replace(/\/+$/, "")}`
+}
+
+function toStoredCount(value) {
+  if (!value) {
+    return 0
+  }
+
+  const parsedValue = Number.parseInt(value, 10)
+
+  return Number.isFinite(parsedValue) ? parsedValue : 0
 }
