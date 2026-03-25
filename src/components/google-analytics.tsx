@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import Script from "next/script"
 import { useEffect } from "react"
 
@@ -17,14 +17,13 @@ declare global {
 
 export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     if (!measurementId) {
       return
     }
 
-    const search = searchParams.toString()
+    const search = window.location.search.replace(/^\?/, "")
     const pagePath = search ? `${pathname}?${search}` : pathname
     let isCancelled = false
 
@@ -51,7 +50,7 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     return () => {
       isCancelled = true
     }
-  }, [measurementId, pathname, searchParams])
+  }, [measurementId, pathname])
 
   if (!measurementId) {
     return null
