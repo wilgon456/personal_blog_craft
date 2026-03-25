@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react"
 import {
-  buildVisitorApiUrl,
+  getCountapiUrl,
   type VisitorApiResponse,
   visitorCountEventName,
 } from "@/lib/visitor-api"
 
-type TodayVisitorCountProps = {
-  endpoint: string
-}
-
+/**
+ * countapi.xyz에서 누적 방문자 수를 가져와 화면에 표시합니다.
+ *
+ * 1. 컴포넌트 마운트 시 GET 요청으로 현재 카운트를 불러옵니다.
+ * 2. VisitorTracker 컴포넌트가 방문 추적 후 발행하는 커스텀 이벤트를 수신해
+ *    실시간으로 수치를 최신 값으로 갱신합니다.
+ */
 const numberFormatter = new Intl.NumberFormat("en-US")
 
-export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
+export function TodayVisitorCount() {
   const [count, setCount] = useState<number | null>(null)
   const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
 
@@ -22,33 +25,26 @@ export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
 
     function handleVisitorCountUpdate(event: Event) {
       const customEvent = event as CustomEvent<VisitorApiResponse>
-
       setCount(customEvent.detail.count)
       setStatus("ready")
     }
 
-    async function loadTodayVisitorCount() {
+    async function loadVisitorCount() {
       try {
-        const response = await fetch(
-          buildVisitorApiUrl(endpoint, window.location.origin, {
-            mode: "read",
-            scope: "site",
-          }),
-          {
-            cache: "no-store",
-            headers: {
-              Accept: "application/json",
-            },
-            signal: controller.signal,
+        const response = await fetch(getCountapiUrl("read"), {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
           },
-        )
+          signal: controller.signal,
+        })
 
         if (!response.ok) {
           throw new Error(`Failed to load visitor count: ${response.status}`)
         }
 
-        const payload = (await response.json()) as VisitorApiResponse
-        setCount(payload.count)
+        const data = (await response.json()) as { value: number }
+        setCount(data.value)
         setStatus("ready")
       } catch {
         if (controller.signal.aborted) {
@@ -60,13 +56,13 @@ export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
     }
 
     window.addEventListener(visitorCountEventName, handleVisitorCountUpdate)
-    loadTodayVisitorCount()
+    loadVisitorCount()
 
     return () => {
       controller.abort()
       window.removeEventListener(visitorCountEventName, handleVisitorCountUpdate)
     }
-  }, [endpoint])
+  }, [])
 
   const value =
     status === "ready" && count !== null
@@ -77,10 +73,10 @@ export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
 
   const caption =
     status === "ready"
-      ? "unique visitors today"
+      ? "total visitors"
       : status === "error"
         ? "visitor data unavailable"
-        : "counting today's visitors"
+        : "counting visitors"
 
   return (
     <div className="home-today-card">

@@ -13,7 +13,6 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/site"
-import { visitorApiEndpoint } from "@/lib/visitor-api"
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -100,7 +99,7 @@ export default async function HomePage() {
         <section className="home-right-group home-right-group--spaced">
           <div className="panel home-right-card">
             <p className="home-panel-heading">Today</p>
-            <TodayVisitorCount endpoint={visitorApiEndpoint} />
+            <TodayVisitorCount />
           </div>
         </section>
 

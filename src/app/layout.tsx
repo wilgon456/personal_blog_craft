@@ -15,7 +15,6 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/site"
-import { visitorApiEndpoint } from "@/lib/visitor-api"
 
 const pretendard = localFont({
   src: "../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
@@ -70,7 +69,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${pretendard.variable} ${pretendard.className}`}>
         <GoogleAnalytics measurementId={gaMeasurementId} />
-        <VisitorTracker endpoint={visitorApiEndpoint} />
+        <VisitorTracker />
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {
