@@ -9,9 +9,9 @@ const DEFAULT_VISITOR_ALLOWED_ORIGINS = [
 const DEFAULT_VISITOR_TIMEZONE = "Asia/Seoul"
 const GITHUB_API_VERSION = "2026-03-10"
 const VISITOR_COUNT_KEY_PREFIX = "site-visitor-count"
-const VISITOR_COUNT_TTL_SECONDS = 60 * 60 * 24 * 14
+const VISITOR_COUNT_TTL_SECONDS = 60 * 60 * 24 * 400
+const VISITOR_HISTORY_MAX_DAYS = 90
 const VISITOR_ROUTE_PATH = "/api/visits/today"
-const VISITOR_SCOPE_PATH = "path"
 const VISITOR_SCOPE_SITE = "site"
 const VISITOR_SEEN_KEY_PREFIX = "site-visitor-seen"
 const VISITOR_SEEN_TTL_SECONDS = 60 * 60 * 48
@@ -73,19 +73,39 @@ async function handleVisitorRequest(request, env) {
 
   try {
     const url = new URL(request.url)
-    const mode = url.searchParams.get("mode") === "read" ? "read" : "track"
-    const scope = url.searchParams.get("scope") === VISITOR_SCOPE_PATH
-      ? VISITOR_SCOPE_PATH
-      : VISITOR_SCOPE_SITE
-    const path = normalizeVisitorPath(url.searchParams.get("path") || "/")
-    const dateKey = getDateKey(
-      Date.now(),
-      env.VISITOR_TIMEZONE || DEFAULT_VISITOR_TIMEZONE,
-    )
-    const scopeKey = scope === VISITOR_SCOPE_PATH ? `${scope}:${path}` : scope
-    const countKey = `${VISITOR_COUNT_KEY_PREFIX}:${dateKey}:${scopeKey}`
+    const timeZone = env.VISITOR_TIMEZONE || DEFAULT_VISITOR_TIMEZONE
+    const mode = getVisitorMode(url.searchParams.get("mode"))
+    const scope = VISITOR_SCOPE_SITE
+    const dateKey = getDateKey(Date.now(), timeZone)
+    const scopeKey = scope
+    const countKey = getVisitorCountKey(dateKey, scopeKey)
     let count = toStoredCount(await env.CONTENT_STATE.get(countKey))
     let counted = false
+
+    if (mode === "history") {
+      const days = clampHistoryDays(url.searchParams.get("days"))
+      const history = await Promise.all(
+        getRecentDateKeys(days, timeZone).map(async (historyDateKey) => ({
+          count: toStoredCount(
+            await env.CONTENT_STATE.get(getVisitorCountKey(historyDateKey, scopeKey)),
+          ),
+          dateKey: historyDateKey,
+        })),
+      )
+
+      return jsonResponse(
+        {
+          days,
+          history,
+          ok: true,
+          scope,
+          todayCount: history.at(-1)?.count ?? 0,
+          totalCount: history.reduce((sum, entry) => sum + entry.count, 0),
+        },
+        200,
+        corsHeaders,
+      )
+    }
 
     if (mode === "track") {
       const visitorFingerprint = await createVisitorFingerprint(request)
@@ -325,13 +345,54 @@ async function createVisitorFingerprint(request) {
   return createHash(`${ipAddress}|${userAgent}|${acceptLanguage}`)
 }
 
+function clampHistoryDays(value) {
+  const parsedValue = Number.parseInt(value || "14", 10)
+
+  if (!Number.isFinite(parsedValue)) {
+    return 14
+  }
+
+  return Math.min(Math.max(parsedValue, 1), VISITOR_HISTORY_MAX_DAYS)
+}
+
 function getDateKey(timestamp, timeZone) {
-  return new Intl.DateTimeFormat("en-CA", {
+  const formatter = new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "2-digit",
     timeZone,
     year: "numeric",
-  }).format(timestamp)
+  })
+  const parts = formatter.formatToParts(timestamp)
+  const year = parts.find((part) => part.type === "year")?.value || "0000"
+  const month = parts.find((part) => part.type === "month")?.value || "01"
+  const day = parts.find((part) => part.type === "day")?.value || "01"
+
+  return `${year}-${month}-${day}`
+}
+
+function getRecentDateKeys(days, timeZone) {
+  const oneDay = 24 * 60 * 60 * 1000
+
+  return Array.from({ length: days }, (_, index) => {
+    const offset = days - index - 1
+    return getDateKey(Date.now() - offset * oneDay, timeZone)
+  })
+}
+
+function getVisitorCountKey(dateKey, scopeKey) {
+  return `${VISITOR_COUNT_KEY_PREFIX}:${dateKey}:${scopeKey}`
+}
+
+function getVisitorMode(value) {
+  if (value === "history") {
+    return "history"
+  }
+
+  if (value === "read") {
+    return "read"
+  }
+
+  return "track"
 }
 
 function isAllowedOrigin(origin, env) {
@@ -354,14 +415,6 @@ function jsonResponse(payload, status, headers) {
     headers,
     status,
   })
-}
-
-function normalizeVisitorPath(value) {
-  if (!value || value === "/") {
-    return "/"
-  }
-
-  return `/${value.replace(/^\/+/, "").replace(/\/+$/, "")}`
 }
 
 function toStoredCount(value) {

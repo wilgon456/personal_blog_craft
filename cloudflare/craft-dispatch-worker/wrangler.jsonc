@@ -16,6 +16,12 @@
   "observability": {
     "enabled": true
   },
+  "routes": [
+    {
+      "pattern": "tuchizblog.today/api/visits/today*",
+      "zone_name": "tuchizblog.today"
+    }
+  ],
   "triggers": {
     "crons": [
       "* * * * *"

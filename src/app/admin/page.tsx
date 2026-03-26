@@ -1,9 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next"
 import Link from "next/link"
+import { AdminVisitorHistory } from "@/components/admin-visitor-history"
 import { ContactIcon } from "@/components/contact-icon"
 import { getContactLinks } from "@/lib/contacts"
 import { getSiteProfile } from "@/lib/profile"
+import { visitorApiEndpoint } from "@/lib/visitor-api"
 import { notFound } from "next/navigation"
 
 const adminRouteEnabled = process.env.ENABLE_ADMIN_ROUTE === "true"
@@ -102,6 +104,12 @@ export default async function AdminPage() {
                 </span>
               ))}
             </div>
+          </section>
+
+          <section className="panel admin-card">
+            <p className="home-panel-heading">Visitors</p>
+            <p>Daily unique visitor history recorded from the Cloudflare Worker.</p>
+            <AdminVisitorHistory days={14} endpoint={visitorApiEndpoint} />
           </section>
 
           <section className="panel admin-card">
