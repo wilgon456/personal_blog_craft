@@ -311,7 +311,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           ) : (
             <p className="profile-card__bio">
-              Series links will appear here once you group posts in Craft.
+              시리즈가 아직 나오지 않았어요
             </p>
           )}
         </div>
