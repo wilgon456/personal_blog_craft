@@ -30,7 +30,7 @@ jobs:
       BLOG_AUTHOR_NAME: tuchi
       BLOG_AUTHOR_URL: https://instagram.com/junicatz
       CRAFT_API_URL: ${{ secrets.CRAFT_API_URL }}
-      ENABLE_ADMIN_ROUTE: "true"
+      ENABLE_ADMIN_ROUTE: "false"
       NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
     steps:
       - name: Checkout

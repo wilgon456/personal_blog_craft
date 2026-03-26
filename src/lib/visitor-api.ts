@@ -2,9 +2,9 @@ export type VisitorApiMode = "history" | "read" | "track"
 export type VisitorApiScope = "site"
 
 export type VisitorCountPayload = {
-  count: number
+  count?: number
   counted: boolean
-  dateKey: string
+  dateKey?: string
   ok: boolean
   scope: VisitorApiScope
 }

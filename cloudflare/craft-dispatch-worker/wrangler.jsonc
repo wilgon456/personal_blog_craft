@@ -18,6 +18,10 @@
   },
   "routes": [
     {
+      "pattern": "tuchizblog.today/admin*",
+      "zone_name": "tuchizblog.today"
+    },
+    {
       "pattern": "tuchizblog.today/api/visits/today*",
       "zone_name": "tuchizblog.today"
     }

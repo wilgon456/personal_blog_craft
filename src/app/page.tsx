@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next"
-import { TodayVisitorCount } from "@/components/today-visitor-count"
 import { ContactIcon } from "@/components/contact-icon"
 import { HomeFeed } from "@/components/home-feed"
 import { getContactLinks } from "@/lib/contacts"
@@ -13,7 +12,6 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/site"
-import { visitorApiEndpoint } from "@/lib/visitor-api"
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -94,13 +92,6 @@ export default async function HomePage() {
                 </a>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="home-right-group home-right-group--spaced">
-          <div className="panel home-right-card">
-            <p className="home-panel-heading">Today</p>
-            <TodayVisitorCount endpoint={visitorApiEndpoint} />
           </div>
         </section>
 

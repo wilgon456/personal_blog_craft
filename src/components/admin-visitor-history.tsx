@@ -27,6 +27,11 @@ export function AdminVisitorHistory({
 
     function handleVisitorCountUpdate(event: Event) {
       const customEvent = event as CustomEvent<VisitorCountPayload>
+      const nextCount = customEvent.detail.count
+
+      if (typeof nextCount !== "number") {
+        return
+      }
 
       setData((currentData) => {
         if (!currentData) {
@@ -37,7 +42,7 @@ export function AdminVisitorHistory({
           index === currentData.history.length - 1
             ? {
                 ...entry,
-                count: customEvent.detail.count,
+                count: nextCount,
               }
             : entry,
         )
@@ -45,7 +50,7 @@ export function AdminVisitorHistory({
         return {
           ...currentData,
           history: nextHistory,
-          todayCount: customEvent.detail.count,
+          todayCount: nextCount,
           totalCount: nextHistory.reduce((sum, entry) => sum + entry.count, 0),
         }
       })

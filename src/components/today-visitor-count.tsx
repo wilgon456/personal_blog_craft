@@ -22,8 +22,13 @@ export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
 
     function handleVisitorCountUpdate(event: Event) {
       const customEvent = event as CustomEvent<VisitorCountPayload>
+      const nextCount = customEvent.detail.count
 
-      setCount(customEvent.detail.count)
+      if (typeof nextCount !== "number") {
+        return
+      }
+
+      setCount(nextCount)
       setStatus("ready")
     }
 
@@ -47,6 +52,10 @@ export function TodayVisitorCount({ endpoint }: TodayVisitorCountProps) {
         }
 
         const payload = (await response.json()) as VisitorCountPayload
+        if (typeof payload.count !== "number") {
+          throw new Error("Visitor count is unavailable")
+        }
+
         setCount(payload.count)
         setStatus("ready")
       } catch {

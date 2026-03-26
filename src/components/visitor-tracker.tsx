@@ -40,11 +40,13 @@ export function VisitorTracker({ endpoint }: VisitorTrackerProps) {
 
         const payload = (await response.json()) as VisitorCountPayload
 
-        window.dispatchEvent(
-          new CustomEvent<VisitorCountPayload>(visitorCountEventName, {
-            detail: payload,
-          }),
-        )
+        if (typeof payload.count === "number") {
+          window.dispatchEvent(
+            new CustomEvent<VisitorCountPayload>(visitorCountEventName, {
+              detail: payload,
+            }),
+          )
+        }
       } catch {
         if (controller.signal.aborted) {
           return
