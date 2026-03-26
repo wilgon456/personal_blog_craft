@@ -3,6 +3,7 @@ import path from "node:path"
 
 const rootDir = process.cwd()
 const envFilePath = path.join(rootDir, ".env.local")
+const FETCH_RETRY_ATTEMPTS = 3
 
 await hydrateLocalEnv()
 
@@ -13,17 +14,36 @@ if (!craftApiUrl) {
 }
 
 async function fetchJson(target) {
-  const response = await fetch(target, {
-    headers: {
-      Accept: "application/json",
-    },
-  })
+  let lastError = null
 
-  if (!response.ok) {
-    throw new Error(`Craft cache fetch failed: ${response.status} ${target}`)
+  for (let attempt = 1; attempt <= FETCH_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(target, {
+        headers: {
+          Accept: "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Craft cache fetch failed: ${response.status} ${target}`)
+      }
+
+      return response.json()
+    } catch (error) {
+      lastError = error
+
+      if (attempt === FETCH_RETRY_ATTEMPTS) {
+        break
+      }
+
+      const waitMs = 500 * attempt
+      await new Promise((resolve) => {
+        setTimeout(resolve, waitMs)
+      })
+    }
   }
 
-  return response.json()
+  throw lastError
 }
 
 async function main() {
