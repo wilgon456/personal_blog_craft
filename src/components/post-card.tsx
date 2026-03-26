@@ -12,7 +12,14 @@ export function PostCard({ post, compact = false }: PostCardProps) {
     <article className="post-card">
       {post.heroImage && !compact ? (
         <div className="post-card__image">
-          <img alt={post.title} src={post.heroImage} />
+          <img
+            alt={post.title}
+            decoding="async"
+            height="1000"
+            loading="lazy"
+            src={post.heroImage}
+            width="1600"
+          />
         </div>
       ) : null}
 

@@ -35,10 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: absoluteUrl("search/"),
+      url: absoluteUrl("series/"),
       lastModified: latestDate,
       changeFrequency: "weekly",
-      priority: 0.5,
+      priority: 0.7,
     },
     ...posts.map((post) => ({
       url: absoluteUrl(`posts/${post.slug}/`),

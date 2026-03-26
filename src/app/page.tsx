@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next"
+import { JsonLd } from "@/components/json-ld"
 import { ContactIcon } from "@/components/contact-icon"
 import { HomeFeed } from "@/components/home-feed"
 import { getContactLinks } from "@/lib/contacts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { getSiteProfile } from "@/lib/profile"
-import { stringifyForInlineScript } from "@/lib/safe-json"
 import {
   absoluteUrl,
   siteDescription,
@@ -49,12 +49,7 @@ export default async function HomePage() {
 
   return (
     <section className="home-shell">
-      <script
-        dangerouslySetInnerHTML={{
-          __html: stringifyForInlineScript([websiteJsonLd, personJsonLdData]),
-        }}
-        type="application/ld+json"
-      />
+      <JsonLd data={[websiteJsonLd, personJsonLdData]} />
 
       <HomeFeed posts={posts} profile={profile} />
 
@@ -64,7 +59,14 @@ export default async function HomePage() {
             <p className="home-panel-heading">I am</p>
             <div className="home-profile">
               <div className="home-avatar">
-                <img alt={profile.displayName} src={profile.profileImage} />
+                <img
+                  alt={profile.displayName}
+                  decoding="async"
+                  height="640"
+                  loading="eager"
+                  src={profile.profileImage}
+                  width="640"
+                />
               </div>
               <div className="home-profile__content">
                 <div className="home-profile__name">{profile.displayName}</div>

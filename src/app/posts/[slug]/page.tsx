@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { JsonLd } from "@/components/json-ld"
 import { PostCard } from "@/components/post-card"
 import { renderCraftBlocksToHtml } from "@/lib/craft"
 import {
@@ -8,8 +9,11 @@ import {
   getSeriesSummaries,
 } from "@/lib/posts"
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts-data"
-import { stringifyForInlineScript } from "@/lib/safe-json"
-import { absoluteUrl, siteAuthorName, siteAuthorUrl, siteName } from "@/lib/site"
+import { absoluteUrl } from "@/lib/site"
+import {
+  buildBlogPostingStructuredData,
+  buildBreadcrumbList,
+} from "@/lib/structured-data"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -76,35 +80,26 @@ export default async function PostPage({ params }: PostPageProps) {
   const featuredSeries = getSeriesSummaries(posts)
     .filter((summary) => summary.key !== post.seriesKey)
     .slice(0, 3)
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.seoDescription || post.excerpt,
-    datePublished: post.publishedAt,
-    dateModified: post.updatedAt,
-    author: {
-      "@type": "Person",
-      name: siteAuthorName,
-      url: siteAuthorUrl || absoluteUrl(),
+  const articleJsonLd = buildBlogPostingStructuredData(post)
+  const breadcrumbJsonLd = buildBreadcrumbList([
+    {
+      name: "Home",
+      item: absoluteUrl(),
     },
-    publisher: {
-      "@type": "Organization",
-      name: siteName,
+    {
+      name: "Archive",
+      item: absoluteUrl("archive/"),
     },
-    mainEntityOfPage: absoluteUrl(`posts/${post.slug}/`),
-    image: post.heroImage ? [post.heroImage] : undefined,
-  }
+    {
+      name: post.title,
+      item: absoluteUrl(`posts/${post.slug}/`),
+    },
+  ])
 
   return (
     <section className="page-grid">
       <div className="page-main">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: stringifyForInlineScript(articleJsonLd),
-          }}
-          type="application/ld+json"
-        />
+        <JsonLd data={[articleJsonLd, breadcrumbJsonLd]} />
         <article className="article-shell">
           <header className="article-header">
             <p className="article-header__eyebrow">Post</p>
@@ -132,7 +127,15 @@ export default async function PostPage({ params }: PostPageProps) {
                   overflow: "hidden",
                 }}
               >
-                <img alt={post.title} src={post.heroImage} />
+                <img
+                  alt={post.title}
+                  decoding="async"
+                  fetchPriority="high"
+                  height="1000"
+                  loading="eager"
+                  src={post.heroImage}
+                  width="1600"
+                />
               </div>
             ) : null}
             {post.excerpt ? (

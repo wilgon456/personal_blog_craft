@@ -1,8 +1,10 @@
 import { EmptyState } from "@/components/empty-state"
+import { JsonLd } from "@/components/json-ld"
 import { PostCard } from "@/components/post-card"
 import { getSeriesSummaries } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteDescription } from "@/lib/site"
+import { buildBreadcrumbList } from "@/lib/structured-data"
 
 export const metadata = {
   title: "Series",
@@ -15,9 +17,20 @@ export const metadata = {
 export default async function SeriesIndexPage() {
   const posts = await getPublishedPosts()
   const series = getSeriesSummaries(posts)
+  const breadcrumbJsonLd = buildBreadcrumbList([
+    {
+      name: "Home",
+      item: absoluteUrl(),
+    },
+    {
+      name: "Series",
+      item: absoluteUrl("series/"),
+    },
+  ])
 
   return (
     <section className="page-grid">
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="page-main">
         <div className="section-heading">
           <h1>Series</h1>

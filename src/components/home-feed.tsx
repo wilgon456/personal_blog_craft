@@ -149,7 +149,14 @@ export function HomeFeed({ profile, posts }: HomeFeedProps) {
         <p className="home-panel-heading">I am</p>
         <div className="home-profile">
           <div className="home-avatar">
-            <img alt={profile.displayName} src={profile.profileImage} />
+            <img
+              alt={profile.displayName}
+              decoding="async"
+              height="640"
+              loading="eager"
+              src={profile.profileImage}
+              width="640"
+            />
           </div>
           <div className="home-profile__content">
             <div className="home-profile__name">{profile.displayName}</div>

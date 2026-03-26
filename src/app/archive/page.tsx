@@ -1,8 +1,10 @@
 import { BackLink } from "@/components/back-link"
 import { EmptyState } from "@/components/empty-state"
+import { JsonLd } from "@/components/json-ld"
 import { getArchiveMonthGroups } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl, siteDescription } from "@/lib/site"
+import { buildBreadcrumbList } from "@/lib/structured-data"
 import Link from "next/link"
 
 export const metadata = {
@@ -16,9 +18,20 @@ export const metadata = {
 export default async function ArchivePage() {
   const posts = await getPublishedPosts()
   const archive = getArchiveMonthGroups(posts)
+  const breadcrumbJsonLd = buildBreadcrumbList([
+    {
+      name: "Home",
+      item: absoluteUrl(),
+    },
+    {
+      name: "Archive",
+      item: absoluteUrl("archive/"),
+    },
+  ])
 
   return (
     <section className="page-grid">
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="page-main">
         <div className="section-heading">
           <h1>Archive</h1>

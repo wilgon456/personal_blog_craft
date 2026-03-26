@@ -63,6 +63,23 @@ export function sanitizeRenderedHtml(html: string) {
   })
 }
 
+function injectImageAttribute(tag: string, attribute: string, value: string) {
+  if (new RegExp(`\\s${attribute}=`, "i").test(tag)) {
+    return tag
+  }
+
+  return tag.replace("<img", `<img ${attribute}="${value}"`)
+}
+
+export function optimizeRenderedHtml(html: string) {
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    let optimizedTag = injectImageAttribute(tag, "loading", "lazy")
+    optimizedTag = injectImageAttribute(optimizedTag, "decoding", "async")
+
+    return optimizedTag
+  })
+}
+
 export function markdownToHtml(markdown: string) {
-  return sanitizeRenderedHtml(renderMarkdownFragment(markdown))
+  return optimizeRenderedHtml(sanitizeRenderedHtml(renderMarkdownFragment(markdown)))
 }

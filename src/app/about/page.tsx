@@ -1,14 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
+import { JsonLd } from "@/components/json-ld"
 import { renderCraftBlocksToHtml } from "@/lib/craft"
 import { getAboutPage } from "@/lib/pages"
 import { getSiteProfile } from "@/lib/profile"
-import { stringifyForInlineScript } from "@/lib/safe-json"
 import {
   absoluteUrl,
   siteAuthorName,
   siteAuthorUrl,
   siteName,
 } from "@/lib/site"
+import { buildBreadcrumbList } from "@/lib/structured-data"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -65,15 +66,20 @@ export default async function AboutPage() {
     description: page.seoDescription,
     image: page.heroImage || absoluteUrl(profile.profileImage),
   }
+  const breadcrumbJsonLd = buildBreadcrumbList([
+    {
+      name: "Home",
+      item: absoluteUrl(),
+    },
+    {
+      name: "About",
+      item: absoluteUrl("about/"),
+    },
+  ])
 
   return (
     <section className="about-page" id="top">
-      <script
-        dangerouslySetInnerHTML={{
-          __html: stringifyForInlineScript(personJsonLd),
-        }}
-        type="application/ld+json"
-      />
+      <JsonLd data={[personJsonLd, breadcrumbJsonLd]} />
 
       <article className="about-shell">
         <div className="about-shell__eyebrow">About</div>
@@ -88,7 +94,15 @@ export default async function AboutPage() {
           </div>
 
           <div className="about-portrait">
-            <img alt={page.title} src={page.heroImage || profile.profileImage} />
+            <img
+              alt={page.title}
+              decoding="async"
+              fetchPriority="high"
+              height="640"
+              loading="eager"
+              src={page.heroImage || profile.profileImage}
+              width="640"
+            />
           </div>
         </header>
 

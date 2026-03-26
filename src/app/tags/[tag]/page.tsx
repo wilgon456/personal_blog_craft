@@ -1,9 +1,11 @@
 import { BackLink } from "@/components/back-link"
 import { EmptyState } from "@/components/empty-state"
+import { JsonLd } from "@/components/json-ld"
 import { PostCard } from "@/components/post-card"
 import { findDisplayTagByKey, getTagSummaries } from "@/lib/posts"
 import { getPublishedPosts } from "@/lib/posts-data"
 import { absoluteUrl } from "@/lib/site"
+import { buildBreadcrumbList } from "@/lib/structured-data"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -54,9 +56,24 @@ export default async function TagPage({ params }: TagPageProps) {
 
   const filteredPosts = posts.filter((post) => post.tagKeys[displayTag] === tag)
   const otherTags = getTagSummaries(posts).filter((summary) => summary.key !== tag)
+  const breadcrumbJsonLd = buildBreadcrumbList([
+    {
+      name: "Home",
+      item: absoluteUrl(),
+    },
+    {
+      name: "Tags",
+      item: absoluteUrl(`tags/${tag}/`),
+    },
+    {
+      name: displayTag,
+      item: absoluteUrl(`tags/${tag}/`),
+    },
+  ])
 
   return (
     <section className="page-grid">
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="page-main">
         <div className="section-heading">
           <h1>{displayTag}</h1>

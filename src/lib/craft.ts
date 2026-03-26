@@ -1,7 +1,11 @@
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { notFound } from "next/navigation"
-import { renderMarkdownFragment, sanitizeRenderedHtml } from "@/lib/markdown"
+import {
+  optimizeRenderedHtml,
+  renderMarkdownFragment,
+  sanitizeRenderedHtml,
+} from "@/lib/markdown"
 
 type CraftCollection = {
   id: string
@@ -558,5 +562,5 @@ export function renderCraftBlocksToHtml(blocks: CraftBlock[] = []) {
     htmlParts.push(closedGroups.html)
   }
 
-  return sanitizeRenderedHtml(htmlParts.join(""))
+  return optimizeRenderedHtml(sanitizeRenderedHtml(htmlParts.join("")))
 }
