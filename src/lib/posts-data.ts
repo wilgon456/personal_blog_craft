@@ -2,6 +2,7 @@ import { flattenCraftBlocks, getCraftPostItems } from "@/lib/craft"
 import { markdownToPlainText, summarizeMarkdown } from "@/lib/content-summary"
 import {
   normalizeCategoryKey,
+  normalizeSeriesKey,
   normalizeTagKey,
 } from "@/lib/posts"
 import type { BlogPost } from "@/types/post"
@@ -33,6 +34,19 @@ function ensureDate(value: unknown) {
 
   const date = new Date(raw)
   return Number.isNaN(date.valueOf()) ? "" : date.toISOString()
+}
+
+function ensureNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
 }
 
 function toEnglishSlug(value: string, fallbackId: string) {
@@ -74,6 +88,9 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
     excerptFromContent
   const rawTags = ensureStringArray(properties.tags)
   const category = ensureString(properties.category)
+  const series = ensureString(properties.series)
+  const seriesDescription = ensureString(properties.series_description)
+  const seriesOrder = ensureNumber(properties.series_order)
   const publishedAt =
     ensureDate(properties.published_at) ||
     ensureDate(properties.updated_at) ||
@@ -89,6 +106,10 @@ function normalizePost(item: Awaited<ReturnType<typeof getCraftPostItems>>[numbe
     title,
     slug,
     excerpt,
+    series,
+    seriesDescription,
+    seriesKey: series ? normalizeSeriesKey(series) : "",
+    seriesOrder,
     category,
     categoryKey: category ? normalizeCategoryKey(category) : "",
     tags: rawTags,

@@ -1373,6 +1373,22 @@ img {
   margin-top: 2rem;
 }
 
+.article-section {
+  margin-top: 2rem;
+}
+
+.article-section__description {
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
+.article-series-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .article-navigation a,
 .archive-item,
 .search-result {
@@ -1388,6 +1404,10 @@ img {
 .search-results {
   display: grid;
   gap: 0.85rem;
+}
+
+.search-results--compact {
+  margin-top: 1rem;
 }
 
 .archive-time-grid {
@@ -1442,6 +1462,76 @@ img {
 
 .search-result p {
   margin-top: 0.55rem;
+  color: var(--muted);
+}
+
+.search-result__series {
+  margin-top: 0.5rem;
+  color: var(--soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.series-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.series-list__item {
+  display: block;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--surface-container), var(--surface-container-low));
+  box-shadow: inset 0 0 0 1px var(--ghost-line);
+}
+
+.series-list__item strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.series-list__item.is-active {
+  box-shadow:
+    inset 0 0 0 1px rgba(216, 180, 254, 0.5),
+    0 0 0 1px rgba(216, 180, 254, 0.18);
+}
+
+.series-list__meta {
+  color: var(--soft);
+  font-size: 0.8rem;
+}
+
+.post-list--compact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.series-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.series-section + .series-section {
+  margin-top: 1.5rem;
+}
+
+.series-card {
+  display: block;
+  padding: 1.15rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, var(--surface-container), var(--surface-container-low));
+  box-shadow: inset 0 0 0 1px var(--ghost-line);
+}
+
+.series-card h2 {
+  margin: 0.3rem 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  letter-spacing: -0.03em;
+}
+
+.series-card p {
   color: var(--muted);
 }
 
@@ -1629,9 +1719,14 @@ img {
   }
 
   .article-navigation,
+  .article-series-nav,
   .site-footer__inner {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .post-list--compact-grid {
+    grid-template-columns: 1fr;
   }
 
   .about-header {

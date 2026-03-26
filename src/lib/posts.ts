@@ -17,6 +17,13 @@ export function normalizeCategoryKey(category: string) {
   })
 }
 
+export function normalizeSeriesKey(series: string) {
+  return slugify(series, {
+    lowercase: true,
+    separator: "-",
+  })
+}
+
 export function getLatestPosts(posts: BlogPost[], limit: number) {
   return posts.slice(0, limit)
 }
@@ -155,6 +162,217 @@ export function getAdjacentPosts(posts: BlogPost[], slug: string) {
     nextPost: index > 0 ? posts[index - 1] : null,
     previousPost: index >= 0 && index < posts.length - 1 ? posts[index + 1] : null,
   }
+}
+
+export function sortPostsBySeriesOrder(posts: BlogPost[]) {
+  return [...posts].sort((left, right) => {
+    const leftOrder = left.seriesOrder ?? Number.MAX_SAFE_INTEGER
+    const rightOrder = right.seriesOrder ?? Number.MAX_SAFE_INTEGER
+
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder
+    }
+
+    return left.publishedAt.localeCompare(right.publishedAt)
+  })
+}
+
+export function getSeriesSummaries(posts: BlogPost[]) {
+  const groupedPosts = new Map<string, BlogPost[]>()
+
+  for (const post of posts) {
+    if (!post.seriesKey) {
+      continue
+    }
+
+    const collection = groupedPosts.get(post.seriesKey) ?? []
+    collection.push(post)
+    groupedPosts.set(post.seriesKey, collection)
+  }
+
+  return [...groupedPosts.entries()]
+    .map(([seriesKey, seriesPosts]) => {
+      const orderedPosts = sortPostsBySeriesOrder(seriesPosts)
+      const anchorPost = orderedPosts[0]
+
+      return {
+        count: orderedPosts.length,
+        description: anchorPost?.seriesDescription ?? "",
+        key: seriesKey,
+        label: anchorPost?.series ?? seriesKey,
+        latestPublishedAt: sortPostsByDate(orderedPosts)[0]?.publishedAt ?? "",
+        posts: orderedPosts,
+      }
+    })
+    .sort((left, right) => {
+      if (right.count !== left.count) {
+        return right.count - left.count
+      }
+
+      return right.latestPublishedAt.localeCompare(left.latestPublishedAt)
+    })
+}
+
+export function getPostsBySeries(posts: BlogPost[], seriesKey: string) {
+  return sortPostsBySeriesOrder(
+    posts.filter((post) => post.seriesKey === seriesKey),
+  )
+}
+
+export function getSeriesNavigation(posts: BlogPost[], post: BlogPost) {
+  if (!post.seriesKey) {
+    return {
+      nextInSeries: null,
+      previousInSeries: null,
+      seriesPosts: [],
+    }
+  }
+
+  const seriesPosts = getPostsBySeries(posts, post.seriesKey)
+  const index = seriesPosts.findIndex((candidate) => candidate.slug === post.slug)
+
+  return {
+    nextInSeries:
+      index >= 0 && index < seriesPosts.length - 1 ? seriesPosts[index + 1] : null,
+    previousInSeries: index > 0 ? seriesPosts[index - 1] : null,
+    seriesPosts,
+  }
+}
+
+export function getRelatedPosts(posts: BlogPost[], post: BlogPost, limit = 3) {
+  return posts
+    .filter((candidate) => candidate.slug !== post.slug)
+    .map((candidate) => {
+      let score = 0
+
+      if (post.seriesKey && candidate.seriesKey === post.seriesKey) {
+        score += 120
+      }
+
+      if (post.categoryKey && candidate.categoryKey === post.categoryKey) {
+        score += 18
+      }
+
+      const sharedTags = candidate.tags.filter((tag) => post.tags.includes(tag)).length
+      score += sharedTags * 24
+
+      const dateDistance = Math.abs(
+        new Date(candidate.publishedAt).valueOf() - new Date(post.publishedAt).valueOf(),
+      )
+      score += Math.max(0, 12 - Math.floor(dateDistance / (1000 * 60 * 60 * 24 * 45)))
+
+      return {
+        post: candidate,
+        score,
+      }
+    })
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score
+      }
+
+      return right.post.publishedAt.localeCompare(left.post.publishedAt)
+    })
+    .slice(0, limit)
+    .map((candidate) => candidate.post)
+}
+
+export function getSearchResults(posts: BlogPost[], query: string) {
+  const normalizedQuery = query.trim().toLowerCase()
+
+  if (!normalizedQuery) {
+    return posts.map((post) => ({
+      post,
+      score: 0,
+    }))
+  }
+
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean)
+  const compactQuery = normalizedQuery.replace(/\s+/g, "")
+
+  return posts
+    .map((post) => {
+      const title = post.title.toLowerCase()
+      const excerpt = post.excerpt.toLowerCase()
+      const content = post.contentMarkdown.toLowerCase()
+      const tags = post.tags.join(" ").toLowerCase()
+      const series = post.series.toLowerCase()
+      const compactTitle = title.replace(/\s+/g, "")
+      const compactSeries = series.replace(/\s+/g, "")
+      let score = 0
+
+      if (title === normalizedQuery) {
+        score += 160
+      }
+
+      if (title.includes(normalizedQuery)) {
+        score += 120
+      }
+
+      if (series && series === normalizedQuery) {
+        score += 90
+      }
+
+      if (series && series.includes(normalizedQuery)) {
+        score += 60
+      }
+
+      if (tags.includes(normalizedQuery)) {
+        score += 44
+      }
+
+      if (excerpt.includes(normalizedQuery)) {
+        score += 26
+      }
+
+      if (content.includes(normalizedQuery)) {
+        score += 12
+      }
+
+      if (compactQuery && compactTitle.includes(compactQuery)) {
+        score += 24
+      }
+
+      if (compactQuery && compactSeries.includes(compactQuery)) {
+        score += 16
+      }
+
+      for (const token of queryTokens) {
+        if (title.includes(token)) {
+          score += 18
+        }
+
+        if (series.includes(token)) {
+          score += 12
+        }
+
+        if (tags.includes(token)) {
+          score += 10
+        }
+
+        if (excerpt.includes(token)) {
+          score += 6
+        }
+
+        if (content.includes(token)) {
+          score += 3
+        }
+      }
+
+      return {
+        post,
+        score,
+      }
+    })
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score
+      }
+
+      return right.post.publishedAt.localeCompare(left.post.publishedAt)
+    })
 }
 
 export function findDisplayTagByKey(posts: BlogPost[], tagKey: string) {

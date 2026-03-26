@@ -12,5 +12,6 @@ export const metadata = {
 
 export default async function SearchPage() {
   const posts = await getPublishedPosts()
+
   return <SearchView initialQuery="" posts={posts} />
 }

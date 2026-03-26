@@ -3,6 +3,9 @@ import { PostCard } from "@/components/post-card"
 import { renderCraftBlocksToHtml } from "@/lib/craft"
 import {
   getAdjacentPosts,
+  getRelatedPosts,
+  getSeriesNavigation,
+  getSeriesSummaries,
 } from "@/lib/posts"
 import { getPostBySlug, getPublishedPosts } from "@/lib/posts-data"
 import { stringifyForInlineScript } from "@/lib/safe-json"
@@ -68,6 +71,11 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const html = renderCraftBlocksToHtml(post.contentBlocks)
   const { previousPost, nextPost } = getAdjacentPosts(posts, post.slug)
+  const { previousInSeries, nextInSeries, seriesPosts } = getSeriesNavigation(posts, post)
+  const relatedPosts = getRelatedPosts(posts, post, 3)
+  const featuredSeries = getSeriesSummaries(posts)
+    .filter((summary) => summary.key !== post.seriesKey)
+    .slice(0, 3)
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -87,13 +95,6 @@ export default async function PostPage({ params }: PostPageProps) {
     mainEntityOfPage: absoluteUrl(`posts/${post.slug}/`),
     image: post.heroImage ? [post.heroImage] : undefined,
   }
-  const relatedPosts = posts
-    .filter(
-      (candidate) =>
-        candidate.slug !== post.slug &&
-        candidate.tags.some((tag) => post.tags.includes(tag)),
-    )
-    .slice(0, 2)
 
   return (
     <section className="page-grid">
@@ -112,6 +113,14 @@ export default async function PostPage({ params }: PostPageProps) {
               <span>{post.displayDate}</span>
               <span>|</span>
               <span>{post.readingMinutes} min read</span>
+              {post.series ? (
+                <>
+                  <span>|</span>
+                  <Link className="muted-link" href={`/series/#${post.seriesKey}`}>
+                    {post.series}
+                  </Link>
+                </>
+              ) : null}
             </div>
             {post.heroImage ? (
               <div
@@ -147,6 +156,90 @@ export default async function PostPage({ params }: PostPageProps) {
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
+          {seriesPosts.length ? (
+            <section className="article-section">
+              <div className="section-heading">
+                <div>
+                  <h2>This series</h2>
+                  <p>
+                    {seriesPosts.length} post(s) in {post.series}.
+                  </p>
+                </div>
+                <Link className="muted-link" href={`/series/#${post.seriesKey}`}>
+                  Open series
+                </Link>
+              </div>
+
+              {post.seriesDescription ? (
+                <p className="article-section__description">{post.seriesDescription}</p>
+              ) : null}
+
+              <div className="series-list">
+                {seriesPosts.map((seriesPost, index) => (
+                  <Link
+                    className={`series-list__item${
+                      seriesPost.slug === post.slug ? " is-active" : ""
+                    }`}
+                    href={`/posts/${seriesPost.slug}`}
+                    key={seriesPost.id}
+                  >
+                    <span className="series-list__meta">
+                      {seriesPost.seriesOrder ?? index + 1}. {seriesPost.displayDate}
+                    </span>
+                    <strong>{seriesPost.title}</strong>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="article-series-nav">
+                {previousInSeries ? (
+                  <Link className="archive-item" href={`/posts/${previousInSeries.slug}`}>
+                    <p className="eyebrow">Previous In Series</p>
+                    <strong>{previousInSeries.title}</strong>
+                  </Link>
+                ) : (
+                  <div className="archive-item">
+                    <p className="eyebrow">Previous In Series</p>
+                    <strong>Series starts here</strong>
+                  </div>
+                )}
+
+                {nextInSeries ? (
+                  <Link className="archive-item" href={`/posts/${nextInSeries.slug}`}>
+                    <p className="eyebrow">Next In Series</p>
+                    <strong>{nextInSeries.title}</strong>
+                  </Link>
+                ) : (
+                  <div className="archive-item">
+                    <p className="eyebrow">Next In Series</p>
+                    <strong>Series ends here</strong>
+                  </div>
+                )}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="article-section">
+            <div className="section-heading">
+              <div>
+                <h2>Related posts</h2>
+                <p>Picked by shared series, tags, category, and recency.</p>
+              </div>
+            </div>
+
+            {relatedPosts.length ? (
+              <div className="post-list post-list--compact-grid">
+                {relatedPosts.map((relatedPost) => (
+                  <PostCard compact key={relatedPost.id} post={relatedPost} />
+                ))}
+              </div>
+            ) : (
+              <p className="profile-card__bio">
+                Related posts will appear here once more topics overlap.
+              </p>
+            )}
+          </section>
+
           <nav className="article-navigation" aria-label="Post navigation">
             {previousPost ? (
               <Link href={`/posts/${previousPost.slug}`}>
@@ -176,36 +269,48 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
 
       <aside className="page-side">
+        {seriesPosts.length ? (
+          <div className="panel">
+            <div className="section-heading">
+              <h2>Series progress</h2>
+            </div>
+            <p className="profile-card__bio">
+              {seriesPosts.findIndex((seriesPost) => seriesPost.slug === post.slug) + 1} of{" "}
+              {seriesPosts.length} in {post.series}.
+            </p>
+            <div className="mini-list" style={{ marginTop: "1rem" }}>
+              {seriesPosts.map((seriesPost, index) => (
+                <Link href={`/posts/${seriesPost.slug}`} key={seriesPost.id}>
+                  <span>
+                    {seriesPost.seriesOrder ?? index + 1}. {seriesPost.title}
+                  </span>
+                  <span className="muted-link">
+                    {seriesPost.slug === post.slug ? "Current" : seriesPost.displayDate}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className="panel">
           <div className="section-heading">
-            <h2>Related notes</h2>
+            <h2>More series</h2>
           </div>
-          {relatedPosts.length ? (
+          {featuredSeries.length ? (
             <div className="mini-list">
-              {relatedPosts.map((relatedPost) => (
-                <Link href={`/posts/${relatedPost.slug}`} key={relatedPost.id}>
-                  <span>{relatedPost.title}</span>
-                  <span className="muted-link">{relatedPost.displayDate}</span>
+              {featuredSeries.map((series) => (
+                <Link href={`/series/#${series.key}`} key={series.key}>
+                  <span>{series.label}</span>
+                  <span className="muted-link">{series.count} posts</span>
                 </Link>
               ))}
             </div>
           ) : (
             <p className="profile-card__bio">
-              Related posts will appear here when tags overlap.
+              Series links will appear here once you group posts in Craft.
             </p>
           )}
-        </div>
-
-        <div className="panel">
-          <div className="section-heading">
-            <h2>Read more</h2>
-          </div>
-          {posts
-            .filter((candidate) => candidate.slug !== post.slug)
-            .slice(0, 2)
-            .map((candidate) => (
-              <PostCard key={candidate.id} compact post={candidate} />
-            ))}
         </div>
       </aside>
     </section>

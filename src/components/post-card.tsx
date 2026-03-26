@@ -25,6 +25,14 @@ export function PostCard({ post, compact = false }: PostCardProps) {
           <span>{post.displayDate}</span>
           <span>|</span>
           <span>{post.readingMinutes} min read</span>
+          {post.series ? (
+            <>
+              <span>|</span>
+              <Link className="muted-link" href={`/series/#${post.seriesKey}`}>
+                {post.series}
+              </Link>
+            </>
+          ) : null}
         </div>
 
         <Link href={`/posts/${post.slug}`}>

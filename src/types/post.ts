@@ -5,6 +5,10 @@ export type BlogPost = {
   title: string
   slug: string
   excerpt: string
+  series: string
+  seriesDescription: string
+  seriesKey: string
+  seriesOrder: number | null
   category: string
   categoryKey: string
   tags: string[]
