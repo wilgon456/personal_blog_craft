@@ -743,6 +743,14 @@ img {
 .home-today-card {
   display: grid;
   gap: 0.35rem;
+  justify-items: start;
+}
+
+.home-today-card__badge {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 999px;
 }
 
 .home-today-card__value {
